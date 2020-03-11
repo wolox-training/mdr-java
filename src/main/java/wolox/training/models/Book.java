@@ -44,6 +44,11 @@ public class Book {
   private String isbn;
 
   /**
+   * Instantiates a new Book.
+   */
+  public Book() {};
+
+  /**
    * Book constructor
    *
    * @param author    the author
