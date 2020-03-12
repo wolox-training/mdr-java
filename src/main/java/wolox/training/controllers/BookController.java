@@ -17,12 +17,11 @@ import wolox.training.exceptions.ForbiddenException;
 import wolox.training.exceptions.NotFoundException;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
+import wolox.training.constants.ErrorMessages;
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
-
-  private String notFoundMessage = "Book not found";
 
   @Autowired
   private BookRepository bookRepository;
@@ -35,7 +34,7 @@ public class BookController {
 
   @GetMapping("/{id}")
   public Book read(@PathVariable Long id) throws NotFoundException {
-    return bookRepository.findById(id).orElseThrow(() -> new NotFoundException(notFoundMessage));
+    return bookRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.notFoundMessage));
   }
 
   @PostMapping
@@ -46,14 +45,14 @@ public class BookController {
 
   @DeleteMapping("/{id}")
   public void delete(@PathVariable Long id) {
-    bookRepository.findById(id).orElseThrow(() -> new NotFoundException(notFoundMessage));
+    bookRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.notFoundMessage));
     bookRepository.deleteById(id);
   }
 
   @PutMapping("/{id}")
   public Book update(@RequestBody Book book, @PathVariable Long id) {
-    bookRepository.findById(id).orElseThrow(() -> new NotFoundException(notFoundMessage));
-    if (!book.getId().equals(id)) throw new ForbiddenException( "Cannot change 'id'");
+    bookRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.notFoundMessage));
+    if (!book.getId().equals(id)) throw new ForbiddenException(ErrorMessages.cannotChangeId);
     return bookRepository.save(book);
   }
 
