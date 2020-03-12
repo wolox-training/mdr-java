@@ -12,6 +12,13 @@ repositories {
 	mavenCentral()
 }
 
+configurations {
+	developmentOnly
+	runtimeClasspath {
+		extendsFrom developmentOnly
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
@@ -20,6 +27,8 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-data-jpa')
 	compile('org.springframework.boot:spring-boot-starter-web')
 	compile group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
+	developmentOnly('org.springframework.boot:spring-boot-devtools')
+	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
 }
 
 test {
