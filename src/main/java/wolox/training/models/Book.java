@@ -1,10 +1,14 @@
 package wolox.training.models;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 
 /**
  * The type Book.
@@ -42,6 +46,9 @@ public class Book {
 
   @Column(nullable = false)
   private String isbn;
+
+  @ManyToMany(mappedBy = "books")
+  private List<User> users;
 
   /**
    * Instantiates a new Book.
@@ -146,4 +153,8 @@ public class Book {
   }
 
   public Long getId() { return id; }
+
+  public List<User> getUsers() {
+    return Collections.unmodifiableList(users);
+  }
 }
