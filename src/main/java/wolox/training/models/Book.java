@@ -1,5 +1,6 @@
 package wolox.training.models;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +49,7 @@ public class Book {
   private String isbn;
 
   @ManyToMany(mappedBy = "books")
-  private List<User> users;
+  private List<User> users = new ArrayList<>();
 
   /**
    * Instantiates a new Book.
@@ -154,7 +155,4 @@ public class Book {
 
   public Long getId() { return id; }
 
-  public List<User> getUsers() {
-    return Collections.unmodifiableList(users);
-  }
 }

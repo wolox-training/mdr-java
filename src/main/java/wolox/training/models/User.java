@@ -1,6 +1,7 @@
 package wolox.training.models;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -34,7 +35,7 @@ public class User {
   private LocalDate birthdate;
 
   @ManyToMany(cascade = {CascadeType.REFRESH, CascadeType.MERGE})
-  private List<Book> books;
+  private List<Book> books = new ArrayList<>();
 
   /**
    * Instantiates a new User.
@@ -56,9 +57,7 @@ public class User {
     this.books = books;
   }
 
-  public long getId() {
-    return id;
-  }
+  public Long getId() { return id; }
 
   public void setId(long id) {
     this.id = id;
