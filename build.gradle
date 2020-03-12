@@ -29,6 +29,9 @@ dependencies {
 	compile group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
 	developmentOnly('org.springframework.boot:spring-boot-devtools')
 	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
+	compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+	compile('org.springframework.plugin:spring-plugin-core:1.2.0.RELEASE')
 }
 
 test {

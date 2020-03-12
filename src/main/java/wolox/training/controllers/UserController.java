@@ -1,6 +1,7 @@
 package wolox.training.controllers;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -55,6 +56,7 @@ public class UserController {
   }
 
   @PutMapping("/{userId}/books/add")
+  @ApiOperation(value= "Add a book to an user. The book must exist.")
   public User addBook(@RequestBody Book receivedBook, @PathVariable Long userId) {
     User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(ErrorMessages.USER_NOT_FOUND));
     Book book = bookRepository.findById(receivedBook.getId()).orElseThrow(() -> new NotFoundException(ErrorMessages.BOOK_NOT_FOUND));

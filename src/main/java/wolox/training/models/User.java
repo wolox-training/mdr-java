@@ -1,5 +1,7 @@
 package wolox.training.models;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiOperation;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +21,7 @@ import wolox.training.exceptions.BookAlreadyOwnedException;
  */
 @Entity
 @Table(name = "users")
+@ApiModel(description= "Users model")
 public class User {
 
   @Id
