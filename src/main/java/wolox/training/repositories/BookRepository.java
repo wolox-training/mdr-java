@@ -1,10 +1,13 @@
 package wolox.training.repositories;
 
 import java.util.Optional;
-import javax.persistence.Id;
 import org.springframework.data.repository.CrudRepository;
 import wolox.training.models.Book;
 
-public interface BookRepository extends CrudRepository<Book, Id> {
+public interface BookRepository extends CrudRepository<Book, Long> {
   Optional<Book> findFirstByAuthor(String author);
+
+  Optional<Book> findById(Long id);
+
+  void deleteById(Long id);
 }
