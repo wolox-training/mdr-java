@@ -34,7 +34,7 @@ public class BookController {
 
   @GetMapping("/{id}")
   public Book read(@PathVariable Long id) throws NotFoundException {
-    return bookRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.notFoundMessage));
+    return bookRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.NOT_FOUND_MESSAGE));
   }
 
   @PostMapping
@@ -45,14 +45,14 @@ public class BookController {
 
   @DeleteMapping("/{id}")
   public void delete(@PathVariable Long id) {
-    bookRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.notFoundMessage));
+    bookRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.NOT_FOUND_MESSAGE));
     bookRepository.deleteById(id);
   }
 
   @PutMapping("/{id}")
   public Book update(@RequestBody Book book, @PathVariable Long id) {
-    bookRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.notFoundMessage));
-    if (!book.getId().equals(id)) throw new ForbiddenException(ErrorMessages.cannotChangeId);
+    bookRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.NOT_FOUND_MESSAGE));
+    if (!book.getId().equals(id)) throw new ForbiddenException(ErrorMessages.CANNOT_CHANGE_ID);
     return bookRepository.save(book);
   }
 
