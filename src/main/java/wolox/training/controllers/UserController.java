@@ -23,6 +23,8 @@ import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.repositories.UserRepository;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -35,6 +37,11 @@ public class UserController {
   @GetMapping("/{id}")
   public User read(@PathVariable Long id) {
     return userRepository.findById(id).orElseThrow(() -> new NotFoundException(StatusMessages.USER_NOT_FOUND));
+  }
+
+  @GetMapping
+  public List<User> readAll() {
+    return (List<User>) userRepository.findAll();
   }
 
   @PostMapping
