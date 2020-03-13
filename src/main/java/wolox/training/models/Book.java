@@ -1,8 +1,9 @@
 package wolox.training.models;
 
+import com.google.common.base.Preconditions;
+import wolox.training.constants.StatusMessages;
+
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Column;
@@ -94,7 +95,7 @@ public class Book {
   }
 
   public void setAuthor(String author) {
-    this.author = author;
+    this.author = Preconditions.checkNotNull(author, StatusMessages.CANNOT_BE_NULL, "author");
   }
 
   public String getImage() {
@@ -102,7 +103,7 @@ public class Book {
   }
 
   public void setImage(String image) {
-    this.image = image;
+    this.image = Preconditions.checkNotNull(image, StatusMessages.CANNOT_BE_NULL, "image");
   }
 
   public String getTitle() {
@@ -110,7 +111,7 @@ public class Book {
   }
 
   public void setTitle(String title) {
-    this.title = title;
+    this.title = Preconditions.checkNotNull(title, StatusMessages.CANNOT_BE_NULL, "title");
   }
 
   public String getSubtitle() {
@@ -118,7 +119,7 @@ public class Book {
   }
 
   public void setSubtitle(String subtitle) {
-    this.subtitle = subtitle;
+    this.subtitle = Preconditions.checkNotNull(subtitle, StatusMessages.CANNOT_BE_NULL, "subtitle");
   }
 
   public String getPublisher() {
@@ -126,7 +127,7 @@ public class Book {
   }
 
   public void setPublisher(String publisher) {
-    this.publisher = publisher;
+    this.publisher = Preconditions.checkNotNull(publisher, StatusMessages.CANNOT_BE_NULL, "publisher");
   }
 
   public String getYear() {
@@ -134,7 +135,7 @@ public class Book {
   }
 
   public void setYear(String year) {
-    this.year = year;
+    this.year = Preconditions.checkNotNull(year, StatusMessages.CANNOT_BE_NULL, "year");
   }
 
   public String getPages() {
@@ -142,7 +143,7 @@ public class Book {
   }
 
   public void setPages(String pages) {
-    this.pages = pages;
+    this.pages = Preconditions.checkNotNull(pages, StatusMessages.CANNOT_BE_NULL, "pages");
   }
 
   public String getIsbn() {
@@ -150,7 +151,7 @@ public class Book {
   }
 
   public void setIsbn(String isbn) {
-    this.isbn = isbn;
+    this.isbn = Preconditions.checkNotNull(isbn, StatusMessages.CANNOT_BE_NULL, "isbn");
   }
 
   public Long getId() { return id; }

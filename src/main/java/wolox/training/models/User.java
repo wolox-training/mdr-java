@@ -1,7 +1,7 @@
 package wolox.training.models;
 
+import com.google.common.base.Preconditions;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiOperation;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +14,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+
+import wolox.training.constants.StatusMessages;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 
 /**
@@ -62,16 +64,12 @@ public class User {
 
   public Long getId() { return id; }
 
-  public void setId(long id) {
-    this.id = id;
-  }
-
   public String getUsername() {
     return username;
   }
 
   public void setUsername(String username) {
-    this.username = username;
+    this.username = Preconditions.checkNotNull(username, StatusMessages.CANNOT_BE_NULL, "username");
   }
 
   public String getName() {
@@ -79,7 +77,7 @@ public class User {
   }
 
   public void setName(String name) {
-    this.name = name;
+    this.name = Preconditions.checkNotNull(name, StatusMessages.CANNOT_BE_NULL, "name");
   }
 
   public LocalDate getBirthdate() {
@@ -87,7 +85,7 @@ public class User {
   }
 
   public void setBirthdate(LocalDate birthdate) {
-    this.birthdate = birthdate;
+    this.birthdate = Preconditions.checkNotNull(birthdate, StatusMessages.CANNOT_BE_NULL, "birthdate");
   }
 
   public List<Book> getBooks() {
