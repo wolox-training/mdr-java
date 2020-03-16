@@ -53,13 +53,11 @@ public class User {
    * @param username  the username
    * @param name      the name
    * @param birthdate the birthdate
-   * @param books     the books
    */
-  public User(String username, String name, LocalDate birthdate, List<Book> books) {
-    this.username = username;
-    this.name = name;
-    this.birthdate = birthdate;
-    this.books = books;
+  public User(String username, String name, LocalDate birthdate) {
+    this.setUsername(username);
+    this.setName(name);
+    this.setBirthdate(birthdate);
   }
 
   public Long getId() { return id; }
@@ -69,7 +67,8 @@ public class User {
   }
 
   public void setUsername(String username) {
-    this.username = Preconditions.checkNotNull(username, StatusMessages.CANNOT_BE_NULL, "username");
+    Preconditions.checkNotNull(username, StatusMessages.CANNOT_BE_NULL, "username");
+    this.username = username;
   }
 
   public String getName() {
@@ -77,7 +76,8 @@ public class User {
   }
 
   public void setName(String name) {
-    this.name = Preconditions.checkNotNull(name, StatusMessages.CANNOT_BE_NULL, "name");
+    Preconditions.checkNotNull(name, StatusMessages.CANNOT_BE_NULL, "name");
+    this.name = name;
   }
 
   public LocalDate getBirthdate() {
@@ -85,7 +85,9 @@ public class User {
   }
 
   public void setBirthdate(LocalDate birthdate) {
-    this.birthdate = Preconditions.checkNotNull(birthdate, StatusMessages.CANNOT_BE_NULL, "birthdate");
+    Preconditions.checkNotNull(birthdate, StatusMessages.CANNOT_BE_NULL, "birthdate");
+    Preconditions.checkArgument(birthdate.isBefore(LocalDate.now()), StatusMessages.FUTURE_DATE, "birthdate");
+    this.birthdate = birthdate;
   }
 
   public List<Book> getBooks() {

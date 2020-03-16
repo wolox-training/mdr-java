@@ -3,6 +3,7 @@ package wolox.training.models;
 import com.google.common.base.Preconditions;
 import wolox.training.constants.StatusMessages;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Entity;
@@ -71,15 +72,15 @@ public class Book {
    * @param genre     the genre
    */
   public Book(String author, String image, String title, String subtitle, String publisher, String year, String pages, String isbn, String genre) {
-    this.genre = genre;
-    this.author = author;
-    this.image = image;
-    this.title = title;
-    this.subtitle = subtitle;
-    this.publisher = publisher;
-    this.year = year;
-    this.pages = pages;
-    this.isbn = isbn;
+    this.setGenre(genre);
+    this.setAuthor(author);
+    this.setImage(image);
+    this.setTitle(title);
+    this.setSubtitle(subtitle);
+    this.setPublisher(publisher);
+    this.setYear(year);
+    this.setPages(pages);
+    this.setIsbn(isbn);
   }
 
   public String getGenre() {
@@ -95,7 +96,8 @@ public class Book {
   }
 
   public void setAuthor(String author) {
-    this.author = Preconditions.checkNotNull(author, StatusMessages.CANNOT_BE_NULL, "author");
+    Preconditions.checkNotNull(author, StatusMessages.CANNOT_BE_NULL, "author");
+    this.author = author;
   }
 
   public String getImage() {
@@ -103,7 +105,8 @@ public class Book {
   }
 
   public void setImage(String image) {
-    this.image = Preconditions.checkNotNull(image, StatusMessages.CANNOT_BE_NULL, "image");
+    Preconditions.checkNotNull(image, StatusMessages.CANNOT_BE_NULL, "image");
+    this.image = image;
   }
 
   public String getTitle() {
@@ -111,7 +114,8 @@ public class Book {
   }
 
   public void setTitle(String title) {
-    this.title = Preconditions.checkNotNull(title, StatusMessages.CANNOT_BE_NULL, "title");
+    Preconditions.checkNotNull(title, StatusMessages.CANNOT_BE_NULL, "title");
+    this.title = title;
   }
 
   public String getSubtitle() {
@@ -119,7 +123,8 @@ public class Book {
   }
 
   public void setSubtitle(String subtitle) {
-    this.subtitle = Preconditions.checkNotNull(subtitle, StatusMessages.CANNOT_BE_NULL, "subtitle");
+    Preconditions.checkNotNull(subtitle, StatusMessages.CANNOT_BE_NULL, "subtitle");
+    this.subtitle = subtitle;
   }
 
   public String getPublisher() {
@@ -127,7 +132,8 @@ public class Book {
   }
 
   public void setPublisher(String publisher) {
-    this.publisher = Preconditions.checkNotNull(publisher, StatusMessages.CANNOT_BE_NULL, "publisher");
+    Preconditions.checkNotNull(publisher, StatusMessages.CANNOT_BE_NULL, "publisher");
+    this.publisher = publisher;
   }
 
   public String getYear() {
@@ -135,7 +141,9 @@ public class Book {
   }
 
   public void setYear(String year) {
-    this.year = Preconditions.checkNotNull(year, StatusMessages.CANNOT_BE_NULL, "year");
+    Preconditions.checkNotNull(year, StatusMessages.CANNOT_BE_NULL, "year");
+    Preconditions.checkArgument(Integer.parseInt(year) > 0 && Integer.parseInt(year) <= LocalDate.now().getYear(), StatusMessages.INVALID_YEAR);
+    this.year = year;
   }
 
   public String getPages() {
@@ -143,7 +151,9 @@ public class Book {
   }
 
   public void setPages(String pages) {
-    this.pages = Preconditions.checkNotNull(pages, StatusMessages.CANNOT_BE_NULL, "pages");
+    Preconditions.checkNotNull(pages, StatusMessages.CANNOT_BE_NULL, "pages");
+    Preconditions.checkArgument(Integer.parseInt(pages) > 0, StatusMessages.PAGES_QUANTITY, "pages");
+    this.pages = pages;
   }
 
   public String getIsbn() {
@@ -151,7 +161,8 @@ public class Book {
   }
 
   public void setIsbn(String isbn) {
-    this.isbn = Preconditions.checkNotNull(isbn, StatusMessages.CANNOT_BE_NULL, "isbn");
+    Preconditions.checkNotNull(isbn, StatusMessages.CANNOT_BE_NULL, "isbn");
+    this.isbn = isbn;
   }
 
   public Long getId() { return id; }
