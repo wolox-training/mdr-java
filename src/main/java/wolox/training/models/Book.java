@@ -97,7 +97,7 @@ public class Book {
 
   public void setAuthor(String author) {
     Preconditions.checkNotNull(author, StatusMessages.CANNOT_BE_NULL, "author");
-    Preconditions.checkArgument(author.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "author");
+    Preconditions.checkArgument(!author.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "author");
     this.author = author;
   }
 
@@ -107,7 +107,7 @@ public class Book {
 
   public void setImage(String image) {
     Preconditions.checkNotNull(image, StatusMessages.CANNOT_BE_NULL, "image");
-    Preconditions.checkArgument(image.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "image");
+    Preconditions.checkArgument(!image.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "image");
     this.image = image;
   }
 
@@ -117,7 +117,7 @@ public class Book {
 
   public void setTitle(String title) {
     Preconditions.checkNotNull(title, StatusMessages.CANNOT_BE_NULL, "title");
-    Preconditions.checkArgument(title.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "title");
+    Preconditions.checkArgument(!title.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "title");
     this.title = title;
   }
 
@@ -127,7 +127,7 @@ public class Book {
 
   public void setSubtitle(String subtitle) {
     Preconditions.checkNotNull(subtitle, StatusMessages.CANNOT_BE_NULL, "subtitle");
-    Preconditions.checkArgument(subtitle.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "subtitle");
+    Preconditions.checkArgument(!subtitle.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "subtitle");
     this.subtitle = subtitle;
   }
 
@@ -137,7 +137,7 @@ public class Book {
 
   public void setPublisher(String publisher) {
     Preconditions.checkNotNull(publisher, StatusMessages.CANNOT_BE_NULL, "publisher");
-    Preconditions.checkArgument(publisher.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "publisher");
+    Preconditions.checkArgument(!publisher.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "publisher");
     this.publisher = publisher;
   }
 
@@ -167,7 +167,7 @@ public class Book {
 
   public void setIsbn(String isbn) {
     Preconditions.checkNotNull(isbn, StatusMessages.CANNOT_BE_NULL, "isbn");
-    Preconditions.checkArgument(isbn.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "isbn");
+    Preconditions.checkArgument(!isbn.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "isbn");
     this.isbn = isbn;
   }
 
