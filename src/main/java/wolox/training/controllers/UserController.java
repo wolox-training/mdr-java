@@ -40,8 +40,8 @@ public class UserController {
   }
 
   @GetMapping
-  public List<User> readAll() {
-    return (List<User>) userRepository.findAll();
+  public Iterable<User> readAll() {
+    return userRepository.findAll();
   }
 
   @PostMapping
