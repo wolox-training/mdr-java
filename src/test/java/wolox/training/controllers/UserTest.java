@@ -2,6 +2,7 @@ package wolox.training.controllers;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import wolox.training.repositories.UserRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,13 +44,18 @@ class UserControllerIntegrationTest {
 
   // write test cases here
 
-  private User testUser = new User("username","test name", LocalDate.of(1992, 02, 02));
-  private User testUser2 = new User("username2","test name 2", LocalDate.of(1993, 02, 02));
-  private Book testBook = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
+  private User testUser, testUser2;
+  private Book testBook;
   private JSONObject jsonUser, jsonBook;
 
-  {
+
+
+  @BeforeEach
+  public void createVariables() {
     try {
+      testUser = new User("username","test name", LocalDate.of(1992, 02, 02));
+      testUser2 = new User("username2","test name 2", LocalDate.of(1993, 02, 02));
+      testBook = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
       jsonUser = new JSONObject()
             .put("name", testUser.getName())
             .put("username", testUser.getUsername())
@@ -84,10 +91,7 @@ class UserControllerIntegrationTest {
 
   @Test
   public void givenUserList_whenGetUsers_thenReturnJsonUserArray() throws Exception {
-    ArrayList<User> userList = new ArrayList<User>();
-    userList.add(testUser);
-    userList.add(testUser2);
-    Iterable<User> userIterable = userList;
+    Iterable<User> userIterable = Arrays.asList(testUser, testUser2);
 
     given(userRepository.findAll()).willReturn(userIterable);
 
@@ -101,8 +105,7 @@ class UserControllerIntegrationTest {
 
   @Test
   public void givenEmptyUserList_whenGetUsers_thenReturnJsonEmptyArray() throws Exception {
-    ArrayList<User> userList = new ArrayList<User>();
-    Iterable<User> userIterable = userList;
+    Iterable<User> userIterable = new ArrayList<User>();
 
     given(userRepository.findAll()).willReturn(userIterable);
 
@@ -150,12 +153,11 @@ class UserControllerIntegrationTest {
   @Test
   public void givenWrongUser_whenPutUsers_thenReturnForbiddenError() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
-    JSONObject jsonWrongUser = new JSONObject(jsonUser.toString());
-    jsonWrongUser.put("id", 99);
+    jsonUser.put("id", 99);
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId())
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonWrongUser.toString()))
+        .content(jsonUser.toString()))
         .andExpect(status().isForbidden());
   }
 

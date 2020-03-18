@@ -2,6 +2,7 @@ package wolox.training.controllers;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,12 +37,16 @@ class BookControllerIntegrationTest {
 
   // write test cases here
 
-  private Book testBook = new Book("Doyle","image","title","subtitle","publisher","1999","500","isbn","terror");
-  private Book testBook2 = new Book("Doyle2","image2","title2","subtitle2","publisher2","1998","800","isbn2","fiction");
+  private Book testBook, testBook2;
   private JSONObject jsonBook;
 
-  {
+
+
+  @BeforeEach
+  public void createVariables() {
     try {
+      testBook = new Book("Doyle","image","title","subtitle","publisher","1999","500","isbn","terror");
+      testBook2 = new Book("Doyle2","image2","title2","subtitle2","publisher2","1998","800","isbn2","fiction");
       jsonBook = new JSONObject()
           .put("author", testBook.getAuthor())
           .put("image", testBook.getImage())
@@ -79,11 +85,7 @@ class BookControllerIntegrationTest {
 
   @Test
   public void givenBookList_whenGetBooks_thenReturnJsonBooksArray() throws Exception {
-    ArrayList<Book> booksList = new ArrayList<Book>();
-    booksList.add(testBook);
-    booksList.add(testBook2);
-
-    given(bookRepository.findAll()).willReturn(booksList);
+    given(bookRepository.findAll()).willReturn(Arrays.asList(testBook, testBook2));
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/")
         .contentType(MediaType.APPLICATION_JSON))
@@ -95,9 +97,7 @@ class BookControllerIntegrationTest {
 
   @Test
   public void givenEmptyBookList_whenGetBooks_thenReturnJsonEmptyArray() throws Exception {
-    ArrayList<Book> booksList = new ArrayList<Book>();
-
-    given(bookRepository.findAll()).willReturn(booksList);
+    given(bookRepository.findAll()).willReturn(new ArrayList<Book>());
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/")
         .contentType(MediaType.APPLICATION_JSON))
@@ -143,12 +143,11 @@ class BookControllerIntegrationTest {
   @Test
   public void givenWrongBook_whenPutBooks_thenReturnForbiddenError() throws Exception {
     given(bookRepository.findById(testBook.getId())).willReturn(java.util.Optional.ofNullable(testBook));
-    JSONObject jsonWrongBook = new JSONObject(jsonBook.toString());
-    jsonWrongBook.put("id", 99);
+    jsonBook.put("id", 99);
 
     mvc.perform(MockMvcRequestBuilders.put("/api/books/"+testBook.getId())
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonWrongBook.toString()))
+        .content(jsonBook.toString()))
         .andExpect(status().isForbidden());
   }
 
