@@ -11,4 +11,6 @@ public class StatusMessages {
   public static final String FUTURE_DATE = "Date %s cannot be future";
   public static final String PAGES_QUANTITY = "Pages quantity must be greater than 0";
   public static final String INVALID_YEAR = "Year must be between 0 and current year";
+  public static final String USER_ALREADY_EXISTS = "Username already exists in the database";
+  public static final String INVALID_CREDENTIALS = "Username or password is invalid";
 }

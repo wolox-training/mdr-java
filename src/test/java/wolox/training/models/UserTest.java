@@ -28,7 +28,7 @@ class UserIntegrationTest {
 
   @Test
   public void whenFindByUsername_thenReturnUserObject() {
-    User testUser = new User("username","test name", LocalDate.of(1992, 02, 02));
+    User testUser = new User("username","test name", LocalDate.of(1992, 02, 02), "encodedPassword");
     entityManager.persist(testUser);
     entityManager.flush();
 
@@ -40,7 +40,7 @@ class UserIntegrationTest {
 
   @Test
   public void whenFindByUsername_thenReturnNull() {
-    User testUser = new User("username","test name", LocalDate.of(1992, 02, 02));
+    User testUser = new User("username","test name", LocalDate.of(1992, 02, 02), "encodedPassword");
     entityManager.persist(testUser);
     entityManager.flush();
 
@@ -52,7 +52,7 @@ class UserIntegrationTest {
   @Test
   public void whenCreateUserWithNullArgument_thenThrowError() {
     try {
-      new User("username", null, LocalDate.of(3000, 02, 02));
+      new User("username", null, LocalDate.of(3000, 02, 02), "encodedPassword");
     } catch (Exception e) {
       assertThat(e.getMessage().equals(String.format(StatusMessages.CANNOT_BE_NULL, "name")));
     }
@@ -61,7 +61,7 @@ class UserIntegrationTest {
   @Test
   public void whenCreateUserWithBlankField_thenThrowError() {
     try {
-      new User("", "test name", LocalDate.of(1992, 02, 02));
+      new User("", "test name", LocalDate.of(1992, 02, 02), "encodedPassword");
     } catch (Exception e) {
       assertThat(e.getMessage().equals(String.format(StatusMessages.CANNOT_BE_EMPTY, "username")));
     }
@@ -70,7 +70,7 @@ class UserIntegrationTest {
   @Test
   public void whenCreateUserWithWrongBirthdate_thenThrowError() {
     try {
-      new User("username", "test name", LocalDate.of(3000, 02, 02));
+      new User("username", "test name", LocalDate.of(3000, 02, 02), "encodedPassword");
     } catch (Exception e) {
       assertThat(e.getMessage().equals(String.format(StatusMessages.FUTURE_DATE, "birthdate")));
     }
