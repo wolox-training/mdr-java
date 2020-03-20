@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import wolox.training.constants.StatusMessages;
-import wolox.training.dtos.UserDto;
+import wolox.training.dtos.UserDTO;
 import wolox.training.exceptions.BadRequestException;
 import wolox.training.exceptions.ForbiddenException;
 import wolox.training.exceptions.NotFoundException;
@@ -68,7 +68,7 @@ public class UserController {
   }
 
   @PutMapping("/{id}")
-  public User update(@RequestBody UserDto receivedUser, @PathVariable Long id) {
+  public User update(@RequestBody UserDTO receivedUser, @PathVariable Long id) {
     User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException(StatusMessages.USER_NOT_FOUND));
     if (receivedUser.getName() != null) user.setName(receivedUser.getName());
     if (receivedUser.getUsername() != null) user.setUsername(receivedUser.getUsername());
@@ -77,7 +77,7 @@ public class UserController {
   }
 
   @PutMapping("/{id}/password")
-  public User updatePassword(@RequestBody UserDto receivedUser, @PathVariable Long id) {
+  public User updatePassword(@RequestBody UserDTO receivedUser, @PathVariable Long id) {
     User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException(StatusMessages.USER_NOT_FOUND));
     if (receivedUser.getPassword() == null || receivedUser.getOldPassword() == null)
       throw new BadRequestException(StatusMessages.CHANGE_PASSWORD_FIELDS);

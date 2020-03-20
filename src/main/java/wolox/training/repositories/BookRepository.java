@@ -10,4 +10,6 @@ public interface BookRepository extends CrudRepository<Book, Long> {
   Optional<Book> findById(Long id);
 
   void deleteById(Long id);
+
+  Optional<Book> findFirstByIsbn(String isbn);
 }

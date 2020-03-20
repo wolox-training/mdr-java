@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
 
-public class UserDto {
+public class UserDTO {
 
   private Long id;
 
@@ -22,7 +22,7 @@ public class UserDto {
   /**
    * Instantiates a new User DTO object.
    */
-  public UserDto() {}
+  public UserDTO() {}
 
   /**
    * User DTO constructor.
@@ -32,7 +32,7 @@ public class UserDto {
    * @param password  the password
    * @param oldPassword the old password
    */
-  public UserDto(String username, String name, LocalDate birthdate, String password, String oldPassword) {
+  public UserDTO(String username, String name, LocalDate birthdate, String password, String oldPassword) {
     this.username = username;
     this.name = name;
     this.birthdate = birthdate;

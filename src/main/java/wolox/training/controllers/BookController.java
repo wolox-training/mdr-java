@@ -1,5 +1,6 @@
 package wolox.training.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
@@ -18,12 +19,16 @@ import wolox.training.exceptions.NotFoundException;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 import wolox.training.constants.StatusMessages;
+import wolox.training.services.OpenLibraryService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
+
+  @Autowired
+  private OpenLibraryService libraryService;
 
   @Autowired
   private BookRepository bookRepository;
@@ -37,6 +42,19 @@ public class BookController {
   @GetMapping("/{id}")
   public Book read(@PathVariable Long id) {
     return bookRepository.findById(id).orElseThrow(() -> new NotFoundException(StatusMessages.BOOK_NOT_FOUND));
+  }
+
+  @GetMapping("/isbn/{isbn}")
+  public Book searchByIsbn(@PathVariable String isbn) {
+    return bookRepository.findFirstByIsbn(isbn).orElseGet(() -> {
+      try {
+        Book book = libraryService.bookInfo(isbn);
+        return bookRepository.save(book);
+      } catch (JsonProcessingException e) {
+        // In case of json parsing error, it's considered as a book not found error
+        throw new NotFoundException(StatusMessages.BOOK_NOT_FOUND);
+      }
+    });
   }
 
   @GetMapping
