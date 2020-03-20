@@ -1,7 +1,7 @@
 package wolox.training.models;
 
+import com.google.common.base.Preconditions;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiOperation;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +14,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+
+import wolox.training.constants.StatusMessages;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 
 /**
@@ -51,26 +53,22 @@ public class User {
    * @param username  the username
    * @param name      the name
    * @param birthdate the birthdate
-   * @param books     the books
    */
-  public User(String username, String name, LocalDate birthdate, List<Book> books) {
-    this.username = username;
-    this.name = name;
-    this.birthdate = birthdate;
-    this.books = books;
+  public User(String username, String name, LocalDate birthdate) {
+    this.setUsername(username);
+    this.setName(name);
+    this.setBirthdate(birthdate);
   }
 
   public Long getId() { return id; }
-
-  public void setId(long id) {
-    this.id = id;
-  }
 
   public String getUsername() {
     return username;
   }
 
   public void setUsername(String username) {
+    Preconditions.checkNotNull(username, StatusMessages.CANNOT_BE_NULL, "username");
+    Preconditions.checkArgument(username.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "username");
     this.username = username;
   }
 
@@ -79,6 +77,8 @@ public class User {
   }
 
   public void setName(String name) {
+    Preconditions.checkNotNull(name, StatusMessages.CANNOT_BE_NULL, "name");
+    Preconditions.checkArgument(name.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "name");
     this.name = name;
   }
 
@@ -87,6 +87,8 @@ public class User {
   }
 
   public void setBirthdate(LocalDate birthdate) {
+    Preconditions.checkNotNull(birthdate, StatusMessages.CANNOT_BE_NULL, "birthdate");
+    Preconditions.checkArgument(birthdate.isBefore(LocalDate.now()), StatusMessages.FUTURE_DATE, "birthdate");
     this.birthdate = birthdate;
   }
 
