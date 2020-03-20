@@ -30,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import static org.mockito.BDDMockito.given;
 
-@RunWith(SpringRunner.class)
 @WebMvcTest(UserController.class)
 class UserControllerIntegrationTest {
 
@@ -46,24 +45,21 @@ class UserControllerIntegrationTest {
 
   private User testUser, testUser2;
   private Book testBook;
-  private JSONObject jsonUser, jsonBook;
+  private String jsonUser, jsonBook;
 
 
 
   @BeforeEach
   public void createVariables() {
-    try {
       testUser = new User("username","test name", LocalDate.of(1992, 02, 02));
       testUser2 = new User("username2","test name 2", LocalDate.of(1993, 02, 02));
       testBook = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
-      jsonUser = new JSONObject()
-            .put("name", testUser.getName())
-            .put("username", testUser.getUsername())
-            .put("birthdate", testUser.getBirthdate());
-      jsonBook = new JSONObject().put("id", testBook.getId());
-    } catch (JSONException e) {
-      e.printStackTrace();
-    }
+      jsonUser = "{" +
+          "\"name\": \"" + testUser.getName() + "\"," +
+          "\"username\": \"" + testUser.getUsername() + "\"," +
+          "\"birthdate\": \"" + testUser.getBirthdate() + "\"" +
+          "}";
+      jsonBook = "{\"id\": " + testBook.getId() + "}";
   }
 
   // GetById
@@ -123,7 +119,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.post("/api/users/")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonUser.toString()))
+        .content(jsonUser))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.name").value(testUser.getName()));
   }
@@ -137,7 +133,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId())
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonUser.toString()))
+        .content(jsonUser))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value(testUser.getName()));
   }
@@ -146,18 +142,18 @@ class UserControllerIntegrationTest {
   public void givenUnknownUser_whenPutUsers_thenReturnNotFoundError() throws Exception {
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId())
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonUser.toString()))
+        .content(jsonUser))
         .andExpect(status().isNotFound());
   }
 
   @Test
   public void givenWrongUser_whenPutUsers_thenReturnForbiddenError() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
-    jsonUser.put("id", 99);
+    String jsonUnknownUser = "{\"id\": 99}";
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId())
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonUser.toString()))
+        .content(jsonUnknownUser))
         .andExpect(status().isForbidden());
   }
 
@@ -169,7 +165,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.delete("/api/users/"+testUser.getId())
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonUser.toString()))
+        .content(jsonUser))
         .andExpect(status().isNoContent());
   }
 
@@ -177,7 +173,7 @@ class UserControllerIntegrationTest {
   public void givenUnknownUser_whenDeleteUsers_thenReturnNotFoundError() throws Exception {
     mvc.perform(MockMvcRequestBuilders.delete("/api/users/"+testUser.getId())
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonUser.toString()))
+        .content(jsonUser))
         .andExpect(status().isNotFound());
   }
 
@@ -191,7 +187,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId()+"/books/add")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonBook.toString()))
+        .content(jsonBook))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value(testUser.getName()))
         .andExpect(jsonPath("$.books[0].title").value(testBook.getTitle()));
@@ -204,7 +200,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId()+"/books/add")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonBook.toString()))
+        .content(jsonBook))
         .andExpect(status().isNotFound());
   }
 
@@ -214,7 +210,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId()+"/books/add")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonBook.toString()))
+        .content(jsonBook))
         .andExpect(status().isNotFound());
   }
 
@@ -228,7 +224,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId()+"/books/add")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonBook.toString()))
+        .content(jsonBook))
         .andExpect(status().isConflict());
   }
 
@@ -244,7 +240,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId()+"/books/remove")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonBook.toString()))
+        .content(jsonBook))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value(testUser.getName()))
         .andExpect(jsonPath("$.books", hasSize(0)));
@@ -258,7 +254,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId()+"/books/remove")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonBook.toString()))
+        .content(jsonBook))
         .andExpect(status().isNotFound());
   }
 
@@ -271,7 +267,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId()+"/books/remove")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonBook.toString()))
+        .content(jsonBook))
         .andExpect(status().isNotFound());
   }
 
@@ -283,7 +279,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId()+"/books/remove")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonBook.toString()))
+        .content(jsonBook))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value(testUser.getName()))
         .andExpect(jsonPath("$.books", hasSize(0)));
