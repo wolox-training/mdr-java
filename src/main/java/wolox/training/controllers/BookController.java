@@ -64,6 +64,11 @@ public class BookController {
     return (List<Book>) bookRepository.findAll();
   }
 
+  @GetMapping("/search")
+  public List<Book> readAllByPublisherAndGenreAndYear(@RequestParam String publisher,@RequestParam  String genre,@RequestParam  String year) {
+    return bookRepository.findAllByPublisherAndGenreAndYear(publisher, genre, year);
+  }
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public Book create(@RequestBody Book book) {
