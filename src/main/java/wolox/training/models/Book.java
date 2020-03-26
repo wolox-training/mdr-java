@@ -29,7 +29,7 @@ public class Book {
   @Column(nullable = false)
   private String author;
 
-  @Column
+  @Column(nullable = false)
   private String image;
 
   @Column(nullable = false)
@@ -106,6 +106,8 @@ public class Book {
   }
 
   public void setImage(String image) {
+    Preconditions.checkNotNull(image, StatusMessages.CANNOT_BE_NULL, "image");
+    Preconditions.checkArgument(!image.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "image");
     this.image = image;
   }
 
