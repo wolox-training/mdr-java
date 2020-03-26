@@ -153,6 +153,43 @@ class UserControllerIntegrationTest {
         .andExpect(jsonPath("$", hasSize(0)));
   }
 
+  // GetAll
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenUserList_whenSearchUsers_thenReturnJsonUserArray() throws Exception {
+    Iterable<User> userIterable = Arrays.asList(testUser);
+
+    given(userRepository.findAllByBirthdateBetweenAndNameContainingIgnoreCase(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName()))
+        .willReturn(userIterable);
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("startDate", testUser.getBirthdate().toString())
+        .queryParam("endDate", testUser.getBirthdate().toString())
+        .queryParam("partialName", testUser.getName()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].name").value(testUser.getName()));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenEmptyUserList_whenSearchUsers_thenReturnJsonEmptyArray() throws Exception {
+    Iterable<User> userIterable = new ArrayList<User>();
+
+    given(userRepository.findAllByBirthdateBetweenAndNameContainingIgnoreCase(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName()))
+        .willReturn(userIterable);
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("startDate", testUser.getBirthdate().toString())
+        .queryParam("endDate", testUser.getBirthdate().toString())
+        .queryParam("partialName", testUser.getName()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)));
+  }
+
   // Create User
 
   @WithMockUser(value = "test")
