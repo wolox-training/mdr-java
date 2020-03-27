@@ -33,15 +33,26 @@ public class OpenLibraryService {
     JsonNode book = jsonNode.get("ISBN:" + isbn);
     if (book == null) return Optional.empty();
     Book newBook = new Book(
-        book.get("authors").toString(),
-        book.get("cover").toString(),
+        parseArrayOfObjByProperty(book.get("authors"), "name"),
+        book.get("cover").get("medium").asText(),
         book.get("title").asText(),
         book.get("subtitle").asText(),
-        book.get("publishers").toString(),
+        parseArrayOfObjByProperty(book.get("publishers"), "name"),
         book.get("publish_date").asText(),
         book.get("number_of_pages").asText(),
         isbn,
         "");
     return Optional.of(newBook);
+  }
+
+  private String parseArrayOfObjByProperty(JsonNode arrayNode, String property) {
+    String stringResult = "";
+    if (arrayNode.isArray()) {
+      for (JsonNode objNode : arrayNode) {
+        if (!stringResult.isEmpty()) stringResult = stringResult.concat(",");
+        stringResult = stringResult.concat(objNode.get(property).asText());
+      }
+    }
+    return stringResult;
   }
 }
