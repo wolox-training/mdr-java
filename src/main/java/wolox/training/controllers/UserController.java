@@ -54,13 +54,22 @@ public class UserController {
   }
 
   @GetMapping("/search")
-  public Iterable<User> readAllByBirthdateAndName(
-      @RequestParam(required=false) String startDate,
-      @RequestParam(required=false) String endDate,
-      @RequestParam(required=false) String partialName) {
-    LocalDate startLocalDate = startDate != null ? LocalDate.parse(startDate) : null;
-    LocalDate endLocalDate = endDate != null ? LocalDate.parse(endDate) : null;
-    return userRepository.findAllByBirthdateAndName(startLocalDate,endLocalDate,partialName);
+  public Iterable<User> findAllByBirthdateAndName(
+      @RequestParam(required=false, defaultValue = "") String startDate,
+      @RequestParam(required=false, defaultValue = "") String endDate,
+      @RequestParam(required=false, defaultValue = "") String name) {
+    LocalDate startLocalDate = !startDate.isEmpty() ? LocalDate.parse(startDate) : null;
+    LocalDate endLocalDate = !endDate.isEmpty() ? LocalDate.parse(endDate) : null;
+    return userRepository.findAllByBirthdateAndName(startLocalDate,endLocalDate,name);
+  }
+
+  @GetMapping("/search-by")
+  public Iterable<User> readAllWithFilters(
+      @RequestParam(required=false, defaultValue = "") String birthdate,
+      @RequestParam(required=false, defaultValue = "") String name,
+      @RequestParam(required=false, defaultValue = "") String username) {
+    LocalDate parsedBirthdate = !birthdate.isEmpty() ? LocalDate.parse(birthdate) : null;
+    return userRepository.findAllWithFilters(parsedBirthdate,name, username);
   }
 
   @PostMapping

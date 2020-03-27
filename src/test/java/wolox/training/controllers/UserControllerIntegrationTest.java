@@ -153,21 +153,24 @@ class UserControllerIntegrationTest {
         .andExpect(jsonPath("$", hasSize(0)));
   }
 
-  // GetAll
+  // Search By
 
   @WithMockUser(value = "test")
   @Test
-  public void givenUserList_whenSearchUsersWith3Params_thenReturnJsonUserArray() throws Exception {
+  public void givenUserList_whenSearchUsers_thenReturnJsonUserArray() throws Exception {
     Iterable<User> userIterable = Arrays.asList(testUser);
 
-    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName()))
+    given(userRepository.findAllWithFilters(
+        testUser.getBirthdate(),
+        testUser.getName(),
+        testUser.getUsername()))
         .willReturn(userIterable);
 
-    mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/search-by")
         .contentType(MediaType.APPLICATION_JSON)
-        .queryParam("startDate", testUser.getBirthdate().toString())
-        .queryParam("endDate", testUser.getBirthdate().toString())
-        .queryParam("partialName", testUser.getName()))
+        .queryParam("birthdate", testUser.getBirthdate().toString())
+        .queryParam("name", testUser.getName())
+        .queryParam("username", testUser.getUsername()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(jsonPath("$[0].name").value(testUser.getName()));
@@ -175,16 +178,18 @@ class UserControllerIntegrationTest {
 
   @WithMockUser(value = "test")
   @Test
-  public void givenUserList_whenSearchUsersWith2Params_thenReturnJsonUserArray() throws Exception {
+  public void givenUserList_whenSearchUsersWithNullParams_thenReturnJsonUserArray() throws Exception {
     Iterable<User> userIterable = Arrays.asList(testUser);
 
-    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),null,testUser.getName()))
+    given(userRepository.findAllWithFilters(
+        null,
+        testUser.getName(),
+        ""))
         .willReturn(userIterable);
 
-    mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/search-by")
         .contentType(MediaType.APPLICATION_JSON)
-        .queryParam("startDate", testUser.getBirthdate().toString())
-        .queryParam("partialName", testUser.getName()))
+        .queryParam("name", testUser.getName()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
         .andExpect(jsonPath("$[0].name").value(testUser.getName()));
@@ -195,14 +200,14 @@ class UserControllerIntegrationTest {
   public void givenEmptyUserList_whenSearchUsers_thenReturnJsonEmptyArray() throws Exception {
     Iterable<User> userIterable = new ArrayList<User>();
 
-    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName()))
+    given(userRepository.findAllWithFilters(
+        null,
+        "",
+        ""))
         .willReturn(userIterable);
 
-    mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
-        .contentType(MediaType.APPLICATION_JSON)
-        .queryParam("startDate", testUser.getBirthdate().toString())
-        .queryParam("endDate", testUser.getBirthdate().toString())
-        .queryParam("partialName", testUser.getName()))
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/search-by")
+        .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(0)));
   }

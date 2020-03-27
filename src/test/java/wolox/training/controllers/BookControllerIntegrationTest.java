@@ -113,46 +113,79 @@ class BookControllerIntegrationTest {
 
   @WithMockUser(value = "test")
   @Test
-  public void givenBookList_whenSearchBooksWith3Params_thenReturnJsonBooksArray() throws Exception {
-    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear()))
-        .willReturn(Arrays.asList(testBook));
+  public void givenBookList_whenSearchBooksWith10Params_thenReturnJsonBooksArray() throws Exception {
+    given(bookRepository.findAllWithFilters(
+        testBook.getGenre(),
+        testBook.getAuthor(),
+        testBook.getImage(),
+        testBook.getTitle(),
+        testBook.getSubtitle(),
+        testBook.getPublisher(),
+        testBook.getYear(),
+        testBook.getPages(),
+        testBook.getIsbn()))
+        .willReturn(Arrays.asList(testBook, testBook));
 
-    mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/search-by")
         .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("genre",testBook.getGenre())
+        .queryParam("author",testBook.getAuthor())
+        .queryParam("image",testBook.getImage())
+        .queryParam("title",testBook.getTitle())
+        .queryParam("subtitle",testBook.getSubtitle())
         .queryParam("publisher",testBook.getPublisher())
         .queryParam("year",testBook.getYear())
-        .queryParam("genre",testBook.getGenre()))
+        .queryParam("pages",testBook.getPages())
+        .queryParam("isbn",testBook.getIsbn()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()));
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()))
+        .andExpect(jsonPath("$[1].title").value(testBook.getTitle()));
   }
 
   @WithMockUser(value = "test")
   @Test
-  public void givenBookList_whenSearchBooksWith2Params_thenReturnJsonBooksArray() throws Exception {
-    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),null))
-        .willReturn(Arrays.asList(testBook));
+  public void givenBookList_whenSearchBooksWith3Params_thenReturnJsonBooksArray() throws Exception {
+    given(bookRepository.findAllWithFilters(
+        "",
+        testBook.getAuthor(),
+        testBook.getImage(),
+        testBook.getTitle(),
+        "",
+        "",
+        "",
+        "",
+        ""))
+        .willReturn(Arrays.asList(testBook, testBook));
 
-    mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/search-by")
         .contentType(MediaType.APPLICATION_JSON)
-        .queryParam("publisher",testBook.getPublisher())
-        .queryParam("genre",testBook.getGenre()))
+        .queryParam("image",testBook.getImage())
+        .queryParam("author",testBook.getAuthor())
+        .queryParam("title",testBook.getTitle()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()));
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()))
+        .andExpect(jsonPath("$[1].title").value(testBook.getTitle()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenEmptyBookList_whenSearchBooks_thenReturnJsonEmptyArray() throws Exception {
-    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear()))
+    given(bookRepository.findAllWithFilters(
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""))
         .willReturn(Arrays.asList());
 
-    mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
-        .contentType(MediaType.APPLICATION_JSON)
-        .queryParam("publisher",testBook.getPublisher())
-        .queryParam("year",testBook.getYear())
-        .queryParam("genre",testBook.getGenre()))
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/search-by")
+        .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(0)));
   }

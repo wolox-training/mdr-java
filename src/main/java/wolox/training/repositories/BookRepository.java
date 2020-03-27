@@ -22,4 +22,24 @@ public interface BookRepository extends CrudRepository<Book, Long> {
       " AND (:genre is null OR b.genre = :genre)" +
       " AND (:year is null OR b.year = :year)")
   List<Book> findAllByPublisherAndGenreAndYear(@Param("publisher") String publisher, @Param("genre") String genre, @Param("year") String year);
+
+  @Query("SELECT b FROM Book b" +
+      " WHERE (:genre = '' OR LOWER(b.genre) LIKE LOWER(CONCAT('%',:genre,'%')))" +
+      " AND (:author = '' OR LOWER(b.author) LIKE LOWER(CONCAT('%',:author,'%')))" +
+      " AND (:image = '' OR LOWER(b.image) LIKE LOWER(CONCAT('%',:image,'%')))" +
+      " AND (:title = '' OR LOWER(b.title) LIKE LOWER(CONCAT('%',:title,'%')))" +
+      " AND (:subtitle = '' OR LOWER(b.subtitle) LIKE LOWER(CONCAT('%',:subtitle,'%')))" +
+      " AND (:publisher = '' OR LOWER(b.publisher) LIKE LOWER(CONCAT('%',:publisher,'%')))" +
+      " AND (:year = '' OR b.year = :year)" +
+      " AND (:pages = '' OR b.pages = :pages)" +
+      " AND (:isbn = '' OR LOWER(b.isbn) LIKE LOWER(CONCAT('%',:isbn,'%')))")
+  List<Book> findAllWithFilters(@Param("genre") String genre,
+                                @Param("author") String author,
+                                @Param("image") String image,
+                                @Param("title")String title,
+                                @Param("subtitle")String subtitle,
+                                @Param("publisher")String publisher,
+                                @Param("year")String year,
+                                @Param("pages")String minPages,
+                                @Param("isbn")String isbn);
 }
