@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,27 +51,29 @@ public class UserController {
   }
 
   @GetMapping
-  public Iterable<User> readAll() {
-    return userRepository.findAll();
+  public Page<User> readAll(Pageable pageable) {
+    return userRepository.findAll(pageable);
   }
 
   @GetMapping("/search")
-  public Iterable<User> findAllByBirthdateAndName(
+  public Page<User> findAllByBirthdateAndName(
       @RequestParam(required=false, defaultValue = "") String startDate,
       @RequestParam(required=false, defaultValue = "") String endDate,
-      @RequestParam(required=false, defaultValue = "") String name) {
+      @RequestParam(required=false, defaultValue = "") String name,
+      Pageable pageable) {
     LocalDate startLocalDate = !startDate.isEmpty() ? LocalDate.parse(startDate) : null;
     LocalDate endLocalDate = !endDate.isEmpty() ? LocalDate.parse(endDate) : null;
-    return userRepository.findAllByBirthdateAndName(startLocalDate,endLocalDate,name);
+    return userRepository.findAllByBirthdateAndName(startLocalDate,endLocalDate,name,pageable);
   }
 
   @GetMapping("/search-by")
-  public Iterable<User> readAllWithFilters(
+  public Page<User> readAllWithFilters(
       @RequestParam(required=false, defaultValue = "") String birthdate,
       @RequestParam(required=false, defaultValue = "") String name,
-      @RequestParam(required=false, defaultValue = "") String username) {
+      @RequestParam(required=false, defaultValue = "") String username,
+      Pageable pageable) {
     LocalDate parsedBirthdate = !birthdate.isEmpty() ? LocalDate.parse(birthdate) : null;
-    return userRepository.findAllWithFilters(parsedBirthdate,name, username);
+    return userRepository.findAllWithFilters(parsedBirthdate,name,username,pageable);
   }
 
   @PostMapping

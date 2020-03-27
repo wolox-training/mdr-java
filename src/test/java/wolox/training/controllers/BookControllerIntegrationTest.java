@@ -5,18 +5,24 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import wolox.training.components.CustomAuthenticationProvider;
 import wolox.training.models.Book;
+import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.services.OpenLibraryService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,8 +50,7 @@ class BookControllerIntegrationTest {
 
   private Book testBook, testBook2;
   private String jsonBook;
-
-
+  private Pageable pageable;
 
   @BeforeEach
   public void createVariables() {
@@ -61,6 +66,7 @@ class BookControllerIntegrationTest {
         "\"isbn\": \"" + testBook.getIsbn() + "\"," +
         "\"genre\": \"" + testBook.getGenre() + "\"" +
         "}";
+    pageable = PageRequest.of(0, 20);
   }
 
   // GetById
@@ -89,34 +95,42 @@ class BookControllerIntegrationTest {
   @WithMockUser(value = "test")
   @Test
   public void givenBookList_whenGetBooks_thenReturnJsonBooksArray() throws Exception {
-    given(bookRepository.findAll()).willReturn(Arrays.asList(testBook, testBook2));
+    List<Book> bookList = Arrays.asList(testBook, testBook2);
+    Page<Book> page = new PageImpl<>(bookList);
+    given(bookRepository.findAll(pageable)).willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(2)))
-        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()))
-        .andExpect(jsonPath("$[1].title").value(testBook2.getTitle()));
+        .andExpect(jsonPath("$.totalElements").value(2))
+        .andExpect(jsonPath("$.content[0].title").value(testBook.getTitle()))
+        .andExpect(jsonPath("$.content[1].title").value(testBook2.getTitle()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenEmptyBookList_whenGetBooks_thenReturnJsonEmptyArray() throws Exception {
-    given(bookRepository.findAll()).willReturn(new ArrayList<Book>());
+    List<Book> bookList = Collections.emptyList();
+    Page<Book> page = new PageImpl<>(bookList);
+
+    given(bookRepository.findAll(pageable)).willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(0)));
+        .andExpect(jsonPath("$.totalElements").value(0));
   }
 
   // Search
 
   @WithMockUser(value = "test")
   @Test
-  public void givenBookList_whenSearchBooksWith3Params_thenReturnJsonBooksArray() throws Exception {
-    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear()))
-        .willReturn(Collections.singletonList(testBook));
+  public void givenBookList_whenSearchBooksWithAllParams_thenReturnJsonBooksArray() throws Exception {
+    List<Book> bookList = Collections.singletonList(testBook);
+    Page<Book> page = new PageImpl<>(bookList);
+
+    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear(),pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
         .contentType(MediaType.APPLICATION_JSON)
@@ -124,30 +138,36 @@ class BookControllerIntegrationTest {
         .queryParam("year",testBook.getYear())
         .queryParam("genre",testBook.getGenre()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()));
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.content[0].title").value(testBook.getTitle()));
   }
 
   @WithMockUser(value = "test")
   @Test
-  public void givenBookList_whenSearchBooksWith2Params_thenReturnJsonBooksArray() throws Exception {
-    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),null))
-        .willReturn(Collections.singletonList(testBook));
+  public void givenBookList_whenSearchBooksWithNullParams_thenReturnJsonBooksArray() throws Exception {
+    List<Book> bookList = Collections.singletonList(testBook);
+    Page<Book> page = new PageImpl<>(bookList);
+
+    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),null,pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
         .contentType(MediaType.APPLICATION_JSON)
         .queryParam("publisher",testBook.getPublisher())
         .queryParam("genre",testBook.getGenre()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()));
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.content[0].title").value(testBook.getTitle()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenEmptyBookList_whenSearchBooks_thenReturnJsonEmptyArray() throws Exception {
-    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear()))
-        .willReturn(Collections.emptyList());
+    List<Book> bookList = Collections.emptyList();
+    Page<Book> page = new PageImpl<>(bookList);
+
+    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear(),pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
         .contentType(MediaType.APPLICATION_JSON)
@@ -155,7 +175,7 @@ class BookControllerIntegrationTest {
         .queryParam("year",testBook.getYear())
         .queryParam("genre",testBook.getGenre()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(0)));
+        .andExpect(jsonPath("$.totalElements").value(0));
   }
 
 
@@ -164,6 +184,9 @@ class BookControllerIntegrationTest {
   @WithMockUser(value = "test")
   @Test
   public void givenBookList_whenSearchBooksByAllParams_thenReturnJsonBooksArray() throws Exception {
+    List<Book> bookList = Arrays.asList(testBook, testBook);
+    Page<Book> page = new PageImpl<>(bookList);
+
     given(bookRepository.findAllWithFilters(
         testBook.getGenre(),
         testBook.getAuthor(),
@@ -173,8 +196,9 @@ class BookControllerIntegrationTest {
         testBook.getPublisher(),
         testBook.getYear(),
         testBook.getPages(),
-        testBook.getIsbn()))
-        .willReturn(Arrays.asList(testBook, testBook));
+        testBook.getIsbn(),
+        pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/search-by")
         .contentType(MediaType.APPLICATION_JSON)
@@ -188,14 +212,17 @@ class BookControllerIntegrationTest {
         .queryParam("pages",testBook.getPages())
         .queryParam("isbn",testBook.getIsbn()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(2)))
-        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()))
-        .andExpect(jsonPath("$[1].title").value(testBook.getTitle()));
+        .andExpect(jsonPath("$.totalElements").value(2))
+        .andExpect(jsonPath("$.content[0].title").value(testBook.getTitle()))
+        .andExpect(jsonPath("$.content[1].title").value(testBook.getTitle()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenBookList_whenSearchBooksBySomeParams_thenReturnJsonBooksArray() throws Exception {
+    List<Book> bookList = Arrays.asList(testBook, testBook, testBook2);
+    Page<Book> page = new PageImpl<>(bookList);
+
     given(bookRepository.findAllWithFilters(
         "",
         testBook.getAuthor(),
@@ -205,8 +232,9 @@ class BookControllerIntegrationTest {
         "",
         "",
         "",
-        ""))
-        .willReturn(Arrays.asList(testBook, testBook));
+        "",
+        pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/search-by")
         .contentType(MediaType.APPLICATION_JSON)
@@ -214,14 +242,18 @@ class BookControllerIntegrationTest {
         .queryParam("author",testBook.getAuthor())
         .queryParam("title",testBook.getTitle()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(2)))
-        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()))
-        .andExpect(jsonPath("$[1].title").value(testBook.getTitle()));
+        .andExpect(jsonPath("$.totalElements").value(3))
+        .andExpect(jsonPath("$.content[0].title").value(testBook.getTitle()))
+        .andExpect(jsonPath("$.content[1].title").value(testBook.getTitle()))
+        .andExpect(jsonPath("$.content[2].title").value(testBook2.getTitle()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenEmptyBookList_whenSearchBooksByNoneParams_thenReturnJsonEmptyArray() throws Exception {
+    List<Book> bookList = Collections.emptyList();
+    Page<Book> page = new PageImpl<>(bookList);
+
     given(bookRepository.findAllWithFilters(
         "",
         "",
@@ -231,13 +263,14 @@ class BookControllerIntegrationTest {
         "",
         "",
         "",
-        ""))
-        .willReturn(Collections.emptyList());
+        "",
+        pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/search-by")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(0)));
+        .andExpect(jsonPath("$.totalElements").value(0));
   }
 
   // Create Book

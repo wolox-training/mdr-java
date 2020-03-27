@@ -2,6 +2,8 @@ package wolox.training.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -60,20 +62,21 @@ public class BookController {
   }
 
   @GetMapping
-  public List<Book> readAll() {
-    return (List<Book>) bookRepository.findAll();
+  public Page<Book> readAll(Pageable pageable) {
+    return bookRepository.findAll(pageable);
   }
 
   @GetMapping("/search")
-  public List<Book> readAllByPublisherAndGenreAndYear(
+  public Page<Book> readAllByPublisherAndGenreAndYear(
       @RequestParam(required=false) String publisher,
       @RequestParam(required=false) String genre,
-      @RequestParam(required=false) String year) {
-    return bookRepository.findAllByPublisherAndGenreAndYear(publisher, genre, year);
+      @RequestParam(required=false) String year,
+      Pageable pageable) {
+    return bookRepository.findAllByPublisherAndGenreAndYear(publisher, genre, year, pageable);
   }
 
   @GetMapping("/search-by")
-  public List<Book> readAllWithFilters(
+  public Page<Book> readAllWithFilters(
       @RequestParam(required=false, defaultValue = "") String genre,
       @RequestParam(required=false, defaultValue = "") String author,
       @RequestParam(required=false, defaultValue = "") String image,
@@ -82,8 +85,9 @@ public class BookController {
       @RequestParam(required=false, defaultValue = "") String publisher,
       @RequestParam(required=false, defaultValue = "") String year,
       @RequestParam(required=false, defaultValue = "") String pages,
-      @RequestParam(required=false, defaultValue = "") String isbn) {
-    return bookRepository.findAllWithFilters(genre, author, image, title, subtitle, publisher, year, pages, isbn);
+      @RequestParam(required=false, defaultValue = "") String isbn,
+      Pageable pageable) {
+    return bookRepository.findAllWithFilters(genre, author, image, title, subtitle, publisher, year, pages, isbn, pageable);
   }
 
   @PostMapping
