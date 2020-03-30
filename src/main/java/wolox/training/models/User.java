@@ -68,7 +68,7 @@ public class User {
 
   public void setUsername(String username) {
     Preconditions.checkNotNull(username, StatusMessages.CANNOT_BE_NULL, "username");
-    Preconditions.checkArgument(username.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "username");
+    Preconditions.checkArgument(!username.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "username");
     this.username = username;
   }
 
@@ -78,7 +78,7 @@ public class User {
 
   public void setName(String name) {
     Preconditions.checkNotNull(name, StatusMessages.CANNOT_BE_NULL, "name");
-    Preconditions.checkArgument(name.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "name");
+    Preconditions.checkArgument(!name.isEmpty(), StatusMessages.CANNOT_BE_EMPTY, "name");
     this.name = name;
   }
 
