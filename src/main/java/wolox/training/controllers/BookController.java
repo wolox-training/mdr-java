@@ -51,9 +51,8 @@ public class BookController {
     Optional<Book> internalBook = bookRepository.findFirstByIsbn(isbn);
     if (internalBook.isPresent()) return new ResponseEntity<>(internalBook,HttpStatus.OK);
     try {
-      Optional<Book> book = libraryService.bookInfo(isbn);
-      if (!book.isPresent()) throw new NotFoundException(StatusMessages.BOOK_NOT_FOUND);
-      return new ResponseEntity<>(bookRepository.save(book.get()), HttpStatus.CREATED);
+      Book book = libraryService.bookInfo(isbn).orElseThrow(() -> new NotFoundException(StatusMessages.BOOK_NOT_FOUND));
+      return new ResponseEntity<>(bookRepository.save(book), HttpStatus.CREATED);
     } catch (JsonProcessingException e) {
       // In case of json parsing error, it's considered as a book not found error
       throw new NotFoundException(StatusMessages.BOOK_NOT_FOUND);
