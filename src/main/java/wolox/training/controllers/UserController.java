@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import wolox.training.constants.StatusMessages;
 import wolox.training.dtos.UserDto;
+import wolox.training.exceptions.BadRequestException;
 import wolox.training.exceptions.ForbiddenException;
 import wolox.training.exceptions.NotFoundException;
 import wolox.training.exceptions.UserAlreadyExistsException;
@@ -78,7 +79,14 @@ public class UserController {
   @PutMapping("/{id}/password")
   public User updatePassword(@RequestBody UserDto receivedUser, @PathVariable Long id) {
     User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException(StatusMessages.USER_NOT_FOUND));
-    if (receivedUser.getPassword() != null) user.setPassword(passwordEncoder.encode(receivedUser.getPassword()));
+    if (receivedUser.getPassword() == null || receivedUser.getOldPassword() == null)
+      throw new BadRequestException(StatusMessages.CHANGE_PASSWORD_FIELDS);
+    if (!passwordEncoder.matches(receivedUser.getOldPassword(),user.getPassword()))
+      throw new ForbiddenException(StatusMessages.INVALID_PASSWORD);
+    if (receivedUser.getPassword().equals(receivedUser.getOldPassword()))
+      throw new BadRequestException(StatusMessages.OLD_AND_NEW_PASSWORDS);
+    user.setPassword(passwordEncoder.encode(receivedUser.getPassword()));
+
     return userRepository.save(user);
   }
 

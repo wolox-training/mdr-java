@@ -51,11 +51,11 @@ class UserControllerIntegrationTest {
   private User testUser, testUser2;
   private Book testBook;
   private String jsonUser, jsonBook;
+  private String password = "test";
 
 
   @BeforeEach
   public void createVariables() {
-    String password = "test";
     testUser = new User("username","test name", LocalDate.of(1992, 02, 02), passwordEncoder.encode(password));
     testUser2 = new User("username2","test name 2", LocalDate.of(1993, 02, 02), passwordEncoder.encode(password));
     testBook = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
@@ -158,6 +158,57 @@ class UserControllerIntegrationTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(jsonUser))
         .andExpect(status().isNotFound());
+  }
+
+  // Change user password
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenNewAndOldPassword_whenPutUsersPassword_thenChangeUserPassword() throws Exception {
+    given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
+    given(userRepository.save(any(User.class))).willReturn(testUser);
+
+    mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"password\": \"newPassword\", \"old_password\": \"" + password + "\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(testUser.getName()));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenNewPassword_whenPutUsersPassword_thenFailsForMissingField() throws Exception {
+    given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
+
+    mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"password\": \"newPassword\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(status().reason(StatusMessages.CHANGE_PASSWORD_FIELDS));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenNewAndOldPassword_whenPutUsersPassword_thenFailsForWrongPassword() throws Exception {
+    given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
+
+    mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"password\": \"newPassword\", \"old_password\": \"badOldPassword\"}"))
+        .andExpect(status().isForbidden())
+        .andExpect(status().reason(StatusMessages.INVALID_PASSWORD));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenNewAndOldPassword_whenPutUsersPassword_thenFailsForSamePassword() throws Exception {
+    given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
+
+    mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"password\": \"" + password + "\", \"old_password\": \"" + password + "\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(status().reason(StatusMessages.OLD_AND_NEW_PASSWORDS));
   }
 
   // Delete User
