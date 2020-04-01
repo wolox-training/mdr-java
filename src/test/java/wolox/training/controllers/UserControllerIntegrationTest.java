@@ -24,6 +24,7 @@ import wolox.training.repositories.UserRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -143,7 +144,7 @@ class UserControllerIntegrationTest {
   @WithMockUser(value = "test")
   @Test
   public void givenEmptyUserList_whenGetUsers_thenReturnJsonEmptyArray() throws Exception {
-    Iterable<User> userIterable = new ArrayList<User>();
+    Iterable<User> userIterable = new ArrayList<>();
 
     given(userRepository.findAll()).willReturn(userIterable);
 
@@ -153,12 +154,66 @@ class UserControllerIntegrationTest {
         .andExpect(jsonPath("$", hasSize(0)));
   }
 
+  // Search
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenUserList_whenSearchUsersWithAllParams_thenReturnJsonUserArray() throws Exception {
+    Iterable<User> userIterable = Collections.singletonList(testUser);
+
+    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName()))
+        .willReturn(userIterable);
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("startDate", testUser.getBirthdate().toString())
+        .queryParam("endDate", testUser.getBirthdate().toString())
+        .queryParam("name", testUser.getName()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].name").value(testUser.getName()));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenUserList_whenSearchUsersWithNullParams_thenReturnJsonUserArray() throws Exception {
+    Iterable<User> userIterable = Collections.singletonList(testUser);
+
+    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),null,testUser.getName()))
+        .willReturn(userIterable);
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("startDate", testUser.getBirthdate().toString())
+        .queryParam("name", testUser.getName()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].name").value(testUser.getName()));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenEmptyUserList_whenSearchUsers_thenReturnJsonEmptyArray() throws Exception {
+    Iterable<User> userIterable = new ArrayList<>();
+
+    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName()))
+        .willReturn(userIterable);
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("startDate", testUser.getBirthdate().toString())
+        .queryParam("endDate", testUser.getBirthdate().toString())
+        .queryParam("name", testUser.getName()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)));
+  }
+
   // Search By
 
   @WithMockUser(value = "test")
   @Test
-  public void givenUserList_whenSearchUsers_thenReturnJsonUserArray() throws Exception {
-    Iterable<User> userIterable = Arrays.asList(testUser);
+  public void givenUserList_whenSearchUsersBy_thenReturnJsonUserArray() throws Exception {
+    Iterable<User> userIterable = Collections.singletonList(testUser);
 
     given(userRepository.findAllWithFilters(
         testUser.getBirthdate(),
@@ -178,8 +233,8 @@ class UserControllerIntegrationTest {
 
   @WithMockUser(value = "test")
   @Test
-  public void givenUserList_whenSearchUsersWithNullParams_thenReturnJsonUserArray() throws Exception {
-    Iterable<User> userIterable = Arrays.asList(testUser);
+  public void givenUserList_whenSearchUsersByWithNullParams_thenReturnJsonUserArray() throws Exception {
+    Iterable<User> userIterable = Collections.singletonList(testUser);
 
     given(userRepository.findAllWithFilters(
         null,
@@ -197,8 +252,8 @@ class UserControllerIntegrationTest {
 
   @WithMockUser(value = "test")
   @Test
-  public void givenEmptyUserList_whenSearchUsers_thenReturnJsonEmptyArray() throws Exception {
-    Iterable<User> userIterable = new ArrayList<User>();
+  public void givenEmptyUserList_whenSearchByUsers_thenReturnJsonEmptyArray() throws Exception {
+    Iterable<User> userIterable = new ArrayList<>();
 
     given(userRepository.findAllWithFilters(
         null,

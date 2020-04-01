@@ -16,6 +16,7 @@ import wolox.training.services.OpenLibraryService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -113,7 +114,56 @@ class BookControllerIntegrationTest {
 
   @WithMockUser(value = "test")
   @Test
-  public void givenBookList_whenSearchBooksWith10Params_thenReturnJsonBooksArray() throws Exception {
+  public void givenBookList_whenSearchBooksWith3Params_thenReturnJsonBooksArray() throws Exception {
+    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear()))
+        .willReturn(Collections.singletonList(testBook));
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("publisher",testBook.getPublisher())
+        .queryParam("year",testBook.getYear())
+        .queryParam("genre",testBook.getGenre()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenBookList_whenSearchBooksWith2Params_thenReturnJsonBooksArray() throws Exception {
+    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),null))
+        .willReturn(Collections.singletonList(testBook));
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("publisher",testBook.getPublisher())
+        .queryParam("genre",testBook.getGenre()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenEmptyBookList_whenSearchBooks_thenReturnJsonEmptyArray() throws Exception {
+    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear()))
+        .willReturn(Collections.emptyList());
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("publisher",testBook.getPublisher())
+        .queryParam("year",testBook.getYear())
+        .queryParam("genre",testBook.getGenre()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)));
+  }
+
+
+  // Search by
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenBookList_whenSearchBooksByAllParams_thenReturnJsonBooksArray() throws Exception {
     given(bookRepository.findAllWithFilters(
         testBook.getGenre(),
         testBook.getAuthor(),
@@ -145,7 +195,7 @@ class BookControllerIntegrationTest {
 
   @WithMockUser(value = "test")
   @Test
-  public void givenBookList_whenSearchBooksWith3Params_thenReturnJsonBooksArray() throws Exception {
+  public void givenBookList_whenSearchBooksBySomeParams_thenReturnJsonBooksArray() throws Exception {
     given(bookRepository.findAllWithFilters(
         "",
         testBook.getAuthor(),
@@ -171,7 +221,7 @@ class BookControllerIntegrationTest {
 
   @WithMockUser(value = "test")
   @Test
-  public void givenEmptyBookList_whenSearchBooks_thenReturnJsonEmptyArray() throws Exception {
+  public void givenEmptyBookList_whenSearchBooksByNoneParams_thenReturnJsonEmptyArray() throws Exception {
     given(bookRepository.findAllWithFilters(
         "",
         "",
@@ -182,7 +232,7 @@ class BookControllerIntegrationTest {
         "",
         "",
         ""))
-        .willReturn(Arrays.asList());
+        .willReturn(Collections.emptyList());
 
     mvc.perform(MockMvcRequestBuilders.get("/api/books/search-by")
         .contentType(MediaType.APPLICATION_JSON))

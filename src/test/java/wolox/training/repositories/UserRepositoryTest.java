@@ -89,4 +89,40 @@ class UserRepositoryTest {
     assertThat(users.get(1).getName()).isEqualTo(testUser2.getName());
     assertThat(users.get(2).getName()).isEqualTo(testUser3.getName());
   }
+
+  // findAllWithFilters
+
+  @Test
+  public void whenFindAllWithFilters_thenReturnUsers() {
+    ArrayList<User> users = (ArrayList<User>) userRepository.findAllWithFilters(
+        testUser.getBirthdate(),
+        testUser.getName(),
+        testUser.getUsername()
+    );
+
+    assertThat(users.size()).isEqualTo(1);
+    assertThat(users.get(0).getName()).isEqualTo(testUser.getName());
+  }
+
+  @Test
+  public void whenFindAllWithFiltersWithNullParameter_thenReturnUsers() {
+    ArrayList<User> users = (ArrayList<User>) userRepository.findAllWithFilters(
+        null,
+        "gooD",
+        "");
+
+    assertThat(users.size()).isEqualTo(2);
+    assertThat(users.get(0).getName()).isEqualTo(testUser.getName());
+    assertThat(users.get(1).getName()).isEqualTo(testUser2.getName());
+  }
+
+  @Test
+  public void whenFindAllWithFiltersWithAllNullParameter_thenReturnUsers() {
+    ArrayList<User> users = (ArrayList<User>) userRepository.findAllWithFilters(null,"","");
+
+    assertThat(users.size()).isEqualTo(3);
+    assertThat(users.get(0).getName()).isEqualTo(testUser.getName());
+    assertThat(users.get(1).getName()).isEqualTo(testUser2.getName());
+    assertThat(users.get(2).getName()).isEqualTo(testUser3.getName());
+  }
 }
