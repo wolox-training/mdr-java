@@ -157,7 +157,7 @@ public class Book {
 
   public void setPages(String pages) {
     Preconditions.checkNotNull(pages, StatusMessages.CANNOT_BE_NULL, "pages");
-    Preconditions.checkArgument(Integer.parseInt(pages) > 0, StatusMessages.PAGES_QUANTITY, "pages");
+    Preconditions.checkArgument(Integer.parseInt(pages) > 0, StatusMessages.PAGES_QUANTITY);
     this.pages = pages;
   }
 

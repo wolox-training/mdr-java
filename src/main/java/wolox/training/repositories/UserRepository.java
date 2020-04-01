@@ -14,7 +14,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
   @Query("SELECT u FROM User u" +
       " WHERE (cast(:birthdate_start as date) is null OR u.birthdate >= :birthdate_start)" +
       " AND (cast(:birthdate_end as date) is null OR u.birthdate <= :birthdate_end)" +
-      " AND (:name is null OR u.name LIKE CONCAT('%',:name,'%'))")
+      " AND (:name is null OR LOWER(u.name) LIKE LOWER(CONCAT('%',:name,'%')))")
   Iterable<User> findAllByBirthdateAndName(
       @Param("birthdate_start") LocalDate birthdateStart,
       @Param("birthdate_end")  LocalDate birthdateEnd,
