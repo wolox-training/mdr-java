@@ -8,15 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import wolox.training.components.AuthenticationFacade;
 import wolox.training.components.IAuthenticationFacade;
 import wolox.training.constants.StatusMessages;
@@ -30,6 +22,7 @@ import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.repositories.UserRepository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @RestController
@@ -59,6 +52,11 @@ public class UserController {
   @GetMapping
   public Iterable<User> readAll() {
     return userRepository.findAll();
+  }
+
+  @GetMapping("/search")
+  public Iterable<User> readAllByBirthdateAndName(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String partialName) {
+    return userRepository.findAllByBirthdateBetweenAndNameContainingIgnoreCase(LocalDate.parse(startDate),LocalDate.parse(endDate),partialName);
   }
 
   @PostMapping
