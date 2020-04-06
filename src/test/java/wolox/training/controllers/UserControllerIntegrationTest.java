@@ -6,11 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import wolox.training.components.CustomAuthenticationProvider;
+import wolox.training.components.IAuthenticationFacade;
 import wolox.training.constants.StatusMessages;
 import wolox.training.exceptions.NotFoundException;
 import wolox.training.models.User;
@@ -42,6 +45,8 @@ class UserControllerIntegrationTest {
   private BookRepository bookRepository;
   @MockBean
   private CustomAuthenticationProvider customAuthenticationProvider;
+  @MockBean
+  private IAuthenticationFacade iAuthenticationFacade;
 
   @Autowired
   private PasswordEncoder passwordEncoder;
@@ -51,21 +56,48 @@ class UserControllerIntegrationTest {
   private User testUser, testUser2;
   private Book testBook;
   private String jsonUser, jsonBook;
-  private String password = "test";
-
+  private String PASSWORD = "test";
 
   @BeforeEach
   public void createVariables() {
-    testUser = new User("username","test name", LocalDate.of(1992, 02, 02), passwordEncoder.encode(password));
-    testUser2 = new User("username2","test name 2", LocalDate.of(1993, 02, 02), passwordEncoder.encode(password));
+    testUser = new User("username","test name", LocalDate.of(1992, 02, 02), passwordEncoder.encode(PASSWORD));
+    testUser2 = new User("username2","test name 2", LocalDate.of(1993, 02, 02), passwordEncoder.encode(PASSWORD));
     testBook = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
     jsonUser = "{" +
         "\"name\": \"" + testUser.getName() + "\"," +
         "\"username\": \"" + testUser.getUsername() + "\"," +
         "\"birthdate\": \"" + testUser.getBirthdate() + "\"," +
-        "\"password\": \"" + password + "\"" +
+        "\"password\": \"" + PASSWORD + "\"" +
         "}";
     jsonBook = "{\"id\": " + testBook.getId() + "}";
+  }
+
+  // GetLoggedUser
+
+  @WithMockUser(username = "username")
+  @Test
+  public void givenUser_whenGetLoggedUser_thenReturnJsonUserObject() throws Exception {
+    given(userRepository.findFirstByUsername("username")).willReturn(java.util.Optional.of(testUser));
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    given(iAuthenticationFacade.getAuthentication()).willReturn(auth);
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/me")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(testUser.getName()))
+        .andExpect(jsonPath("$.username").value(testUser.getUsername()));
+  }
+
+  @WithMockUser(username = "invalidUsername")
+  @Test
+  public void givenInvalidUser_whenGetLoggedUser_thenReturnJsonUserObject() throws Exception {
+    given(userRepository.findFirstByUsername("invalidUsername")).willReturn(java.util.Optional.empty());
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    given(iAuthenticationFacade.getAuthentication()).willReturn(auth);
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/users/me")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNotFound());
   }
 
   // GetById
@@ -170,7 +202,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
         .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"password\": \"newPassword\", \"old_password\": \"" + password + "\"}"))
+        .content("{\"password\": \"newPassword\", \"old_password\": \"" + PASSWORD + "\"}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value(testUser.getName()));
   }
@@ -206,7 +238,7 @@ class UserControllerIntegrationTest {
 
     mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
         .contentType(MediaType.APPLICATION_JSON)
-        .content("{\"password\": \"" + password + "\", \"old_password\": \"" + password + "\"}"))
+        .content("{\"password\": \"" + PASSWORD + "\", \"old_password\": \"" + PASSWORD + "\"}"))
         .andExpect(status().isBadRequest())
         .andExpect(status().reason(StatusMessages.OLD_AND_NEW_PASSWORDS));
   }

@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import wolox.training.components.AuthenticationFacade;
+import wolox.training.components.IAuthenticationFacade;
 import wolox.training.constants.StatusMessages;
 import wolox.training.dtos.UserDTO;
 import wolox.training.exceptions.BadRequestException;
@@ -39,6 +42,14 @@ public class UserController {
   private BookRepository bookRepository;
   @Autowired
   private PasswordEncoder passwordEncoder;
+  @Autowired
+  private IAuthenticationFacade authenticationFacade;
+
+  @GetMapping("/me")
+  public User currentUserNameSimple() {
+    Authentication authentication = authenticationFacade.getAuthentication();
+    return userRepository.findFirstByUsername(authentication.getName()).orElseThrow(() -> new NotFoundException(StatusMessages.USER_NOT_FOUND));
+  }
 
   @GetMapping("/{id}")
   public User read(@PathVariable Long id) {
