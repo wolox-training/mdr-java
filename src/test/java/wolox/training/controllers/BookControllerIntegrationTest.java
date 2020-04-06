@@ -113,7 +113,7 @@ class BookControllerIntegrationTest {
 
   @WithMockUser(value = "test")
   @Test
-  public void givenBookList_whenSearchBooks_thenReturnJsonBooksArray() throws Exception {
+  public void givenBookList_whenSearchBooksWith3Params_thenReturnJsonBooksArray() throws Exception {
     given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear()))
         .willReturn(Arrays.asList(testBook));
 
@@ -121,6 +121,21 @@ class BookControllerIntegrationTest {
         .contentType(MediaType.APPLICATION_JSON)
         .queryParam("publisher",testBook.getPublisher())
         .queryParam("year",testBook.getYear())
+        .queryParam("genre",testBook.getGenre()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].title").value(testBook.getTitle()));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenBookList_whenSearchBooksWith2Params_thenReturnJsonBooksArray() throws Exception {
+    given(bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),null))
+        .willReturn(Arrays.asList(testBook));
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .queryParam("publisher",testBook.getPublisher())
         .queryParam("genre",testBook.getGenre()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))

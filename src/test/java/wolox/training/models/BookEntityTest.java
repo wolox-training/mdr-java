@@ -46,7 +46,7 @@ class BookEntityTest {
     try {
       new Book("Doyle","image","title","subtitle","publisher","1234","0","isbn","terror");
     } catch (Exception e) {
-      assertThat(e.getMessage()).isEqualTo(String.format(StatusMessages.PAGES_QUANTITY));
+      assertThat(e.getMessage()).isEqualTo(StatusMessages.PAGES_QUANTITY);
     }
   }
 }

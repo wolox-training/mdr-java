@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import wolox.training.components.AuthenticationFacade;
 import wolox.training.components.IAuthenticationFacade;
 import wolox.training.constants.StatusMessages;
 import wolox.training.dtos.UserDTO;
@@ -55,8 +54,13 @@ public class UserController {
   }
 
   @GetMapping("/search")
-  public Iterable<User> readAllByBirthdateAndName(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String partialName) {
-    return userRepository.findAllByBirthdateBetweenAndNameContainingIgnoreCase(LocalDate.parse(startDate),LocalDate.parse(endDate),partialName);
+  public Iterable<User> readAllByBirthdateAndName(
+      @RequestParam(required=false) String startDate,
+      @RequestParam(required=false) String endDate,
+      @RequestParam(required=false) String partialName) {
+    LocalDate startLocalDate = startDate != null ? LocalDate.parse(startDate) : null;
+    LocalDate endLocalDate = endDate != null ? LocalDate.parse(endDate) : null;
+    return userRepository.findAllByBirthdateAndName(startLocalDate,endLocalDate,partialName);
   }
 
   @PostMapping

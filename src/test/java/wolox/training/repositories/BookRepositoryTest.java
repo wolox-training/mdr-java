@@ -24,12 +24,14 @@ class BookRepositoryTest {
   @Autowired
   private BookRepository bookRepository;
 
-  Book testBook;
+  Book testBook, testBook2;
 
   @BeforeEach
   void setUp() {
     testBook = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
+    testBook2 = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
     entityManager.persist(testBook);
+    entityManager.persist(testBook2);
     entityManager.flush();
   }
 
@@ -62,7 +64,7 @@ class BookRepositoryTest {
 
   @Test
   public void whenFindById_thenReturnNull() {
-    Optional<Book> found = bookRepository.findById(testBook.getId() + 1);
+    Optional<Book> found = bookRepository.findById(testBook.getId() + 1000);
 
     assertThat(found.isPresent()).isFalse();
   }
@@ -102,10 +104,6 @@ class BookRepositoryTest {
 
   @Test
   public void whenFindAllByPublisherAndGenreAndYear_thenReturnBookObject() {
-    Book testBook2 = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
-    entityManager.persist(testBook2);
-    entityManager.flush();
-
     List<Book> foundList = bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear());
 
     assertThat(foundList.size())
@@ -118,5 +116,25 @@ class BookRepositoryTest {
 
     assertThat(foundList.size())
         .isEqualTo(0);
+  }
+
+  @Test
+  public void whenFindAllByPublisherAndGenreAndYearWithSomeNullParameters_thenReturnBookObject() {
+    List<Book> foundList = bookRepository.findAllByPublisherAndGenreAndYear(null,testBook.getGenre(),testBook.getYear());
+
+    assertThat(foundList.size())
+        .isEqualTo(2);
+    assertThat(foundList.get(0).getTitle()).isEqualTo(testBook.getTitle());
+    assertThat(foundList.get(1).getTitle()).isEqualTo(testBook2.getTitle());
+  }
+
+  @Test
+  public void whenFindAllByPublisherAndGenreAndYearWithAllNullParameters_thenReturnBookObject() {
+    List<Book> foundList = bookRepository.findAllByPublisherAndGenreAndYear(null,null,null);
+
+    assertThat(foundList.size())
+        .isEqualTo(2);
+    assertThat(foundList.get(0).getTitle()).isEqualTo(testBook.getTitle());
+    assertThat(foundList.get(1).getTitle()).isEqualTo(testBook2.getTitle());
   }
 }
