@@ -72,6 +72,20 @@ public class BookController {
     return bookRepository.findAllByPublisherAndGenreAndYear(publisher, genre, year);
   }
 
+  @GetMapping("/search-by")
+  public List<Book> readAllWithFilters(
+      @RequestParam(required=false, defaultValue = "") String genre,
+      @RequestParam(required=false, defaultValue = "") String author,
+      @RequestParam(required=false, defaultValue = "") String image,
+      @RequestParam(required=false, defaultValue = "") String title,
+      @RequestParam(required=false, defaultValue = "") String subtitle,
+      @RequestParam(required=false, defaultValue = "") String publisher,
+      @RequestParam(required=false, defaultValue = "") String year,
+      @RequestParam(required=false, defaultValue = "") String pages,
+      @RequestParam(required=false, defaultValue = "") String isbn) {
+    return bookRepository.findAllWithFilters(genre, author, image, title, subtitle, publisher, year, pages, isbn);
+  }
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public Book create(@RequestBody Book book) {
