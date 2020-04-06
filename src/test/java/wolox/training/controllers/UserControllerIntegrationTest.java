@@ -1,17 +1,16 @@
 package wolox.training.controllers;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import wolox.training.components.CustomAuthenticationProvider;
 import wolox.training.constants.StatusMessages;
 import wolox.training.exceptions.NotFoundException;
 import wolox.training.models.User;
@@ -22,6 +21,7 @@ import wolox.training.repositories.UserRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,30 +40,37 @@ class UserControllerIntegrationTest {
   private UserRepository userRepository;
   @MockBean
   private BookRepository bookRepository;
+  @MockBean
+  private CustomAuthenticationProvider customAuthenticationProvider;
+
+  @Autowired
+  private PasswordEncoder passwordEncoder;
 
   // write test cases here
 
   private User testUser, testUser2;
   private Book testBook;
   private String jsonUser, jsonBook;
-
+  private String password = "test";
 
 
   @BeforeEach
   public void createVariables() {
-      testUser = new User("username","test name", LocalDate.of(1992, 02, 02));
-      testUser2 = new User("username2","test name 2", LocalDate.of(1993, 02, 02));
-      testBook = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
-      jsonUser = "{" +
-          "\"name\": \"" + testUser.getName() + "\"," +
-          "\"username\": \"" + testUser.getUsername() + "\"," +
-          "\"birthdate\": \"" + testUser.getBirthdate() + "\"" +
-          "}";
-      jsonBook = "{\"id\": " + testBook.getId() + "}";
+    testUser = new User("username","test name", LocalDate.of(1992, 02, 02), passwordEncoder.encode(password));
+    testUser2 = new User("username2","test name 2", LocalDate.of(1993, 02, 02), passwordEncoder.encode(password));
+    testBook = new Book("Doyle","image","title","subtitle","publisher","1234","500","isbn","terror");
+    jsonUser = "{" +
+        "\"name\": \"" + testUser.getName() + "\"," +
+        "\"username\": \"" + testUser.getUsername() + "\"," +
+        "\"birthdate\": \"" + testUser.getBirthdate() + "\"," +
+        "\"password\": \"" + password + "\"" +
+        "}";
+    jsonBook = "{\"id\": " + testBook.getId() + "}";
   }
 
   // GetById
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUser_whenGetUser_thenReturnJsonUserObject() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.of(testUser));
@@ -74,6 +81,7 @@ class UserControllerIntegrationTest {
         .andExpect(jsonPath("$.name").value(testUser.getName()));
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenNoUser_whenGetUser_thenReturnNotFoundError() throws Exception {
     given(userRepository.findById(testUser.getId())).willThrow(new NotFoundException(StatusMessages.USER_NOT_FOUND));
@@ -85,6 +93,7 @@ class UserControllerIntegrationTest {
 
   // GetAll
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUserList_whenGetUsers_thenReturnJsonUserArray() throws Exception {
     Iterable<User> userIterable = Arrays.asList(testUser, testUser2);
@@ -99,6 +108,7 @@ class UserControllerIntegrationTest {
         .andExpect(jsonPath("$[1].name").value(testUser2.getName()));
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenEmptyUserList_whenGetUsers_thenReturnJsonEmptyArray() throws Exception {
     Iterable<User> userIterable = new ArrayList<User>();
@@ -113,9 +123,11 @@ class UserControllerIntegrationTest {
 
   // Create User
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUser_whenPostUsers_thenReturnJsonUserObject() throws Exception {
     given(userRepository.save(any(User.class))).willReturn(testUser);
+    given(userRepository.findFirstByUsername(testUser.getUsername())).willReturn(Optional.empty());
 
     mvc.perform(MockMvcRequestBuilders.post("/api/users/")
         .contentType(MediaType.APPLICATION_JSON)
@@ -126,6 +138,7 @@ class UserControllerIntegrationTest {
 
   // Edit User
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUser_whenPutUsers_thenReturnJsonUserObject() throws Exception {
     given(userRepository.save(any(User.class))).willReturn(testUser);
@@ -138,6 +151,7 @@ class UserControllerIntegrationTest {
         .andExpect(jsonPath("$.name").value(testUser.getName()));
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUnknownUser_whenPutUsers_thenReturnNotFoundError() throws Exception {
     mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId())
@@ -146,19 +160,60 @@ class UserControllerIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
-  @Test
-  public void givenWrongUser_whenPutUsers_thenReturnForbiddenError() throws Exception {
-    given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
-    String jsonUnknownUser = "{\"id\": 99}";
+  // Change user password
 
-    mvc.perform(MockMvcRequestBuilders.put("/api/users/"+testUser.getId())
+  @WithMockUser(value = "test")
+  @Test
+  public void givenNewAndOldPassword_whenPutUsersPassword_thenChangeUserPassword() throws Exception {
+    given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
+    given(userRepository.save(any(User.class))).willReturn(testUser);
+
+    mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(jsonUnknownUser))
-        .andExpect(status().isForbidden());
+        .content("{\"password\": \"newPassword\", \"old_password\": \"" + password + "\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(testUser.getName()));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenNewPassword_whenPutUsersPassword_thenFailsForMissingField() throws Exception {
+    given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
+
+    mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"password\": \"newPassword\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(status().reason(StatusMessages.CHANGE_PASSWORD_FIELDS));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenNewAndOldPassword_whenPutUsersPassword_thenFailsForWrongPassword() throws Exception {
+    given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
+
+    mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"password\": \"newPassword\", \"old_password\": \"badOldPassword\"}"))
+        .andExpect(status().isForbidden())
+        .andExpect(status().reason(StatusMessages.INVALID_PASSWORD));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenNewAndOldPassword_whenPutUsersPassword_thenFailsForSamePassword() throws Exception {
+    given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
+
+    mvc.perform(MockMvcRequestBuilders.put("/api/users/" + testUser.getId() + "/password")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"password\": \"" + password + "\", \"old_password\": \"" + password + "\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(status().reason(StatusMessages.OLD_AND_NEW_PASSWORDS));
   }
 
   // Delete User
 
+  @WithMockUser(value = "test")
   @Test
   public void whenDeleteUsers_thenReturnOkNoContent() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
@@ -169,6 +224,7 @@ class UserControllerIntegrationTest {
         .andExpect(status().isNoContent());
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUnknownUser_whenDeleteUsers_thenReturnNotFoundError() throws Exception {
     mvc.perform(MockMvcRequestBuilders.delete("/api/users/"+testUser.getId())
@@ -179,6 +235,7 @@ class UserControllerIntegrationTest {
 
   // Add book
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUserAndBook_whenAddBookToUsers_thenReturnJSONObject() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
@@ -193,6 +250,7 @@ class UserControllerIntegrationTest {
         .andExpect(jsonPath("$.books[0].title").value(testBook.getTitle()));
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenJustBook_whenAddBookToUsers_thenReturnNotFoundError() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
@@ -204,6 +262,7 @@ class UserControllerIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenJustUser_whenAddBookToUsers_thenReturnNotFoundError() throws Exception {
     given(bookRepository.findById(testBook.getId())).willReturn(java.util.Optional.ofNullable(testBook));
@@ -214,6 +273,7 @@ class UserControllerIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUserWithBookAndBook_whenAddBookToUsers_thenReturnJSONObject() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
@@ -230,6 +290,7 @@ class UserControllerIntegrationTest {
 
   // Remove book
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUserAndBook_whenDeleteBookToUsers_thenReturnJSONObject() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
@@ -246,6 +307,7 @@ class UserControllerIntegrationTest {
         .andExpect(jsonPath("$.books", hasSize(0)));
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenJustBook_whenDeleteBookToUsers_thenReturnNotFoundError() throws Exception {
     given(bookRepository.findById(testBook.getId())).willReturn(java.util.Optional.ofNullable(testBook));
@@ -258,6 +320,7 @@ class UserControllerIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenJustUser_whenDeleteBookToUsers_thenReturnNotFoundError() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));
@@ -271,6 +334,7 @@ class UserControllerIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUserWithoutBookAndBook_whenDeleteBookToUsers_thenReturnJSONObject() throws Exception {
     given(userRepository.findById(testUser.getId())).willReturn(java.util.Optional.ofNullable(testUser));

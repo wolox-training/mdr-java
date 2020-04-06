@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import wolox.training.components.CustomAuthenticationProvider;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 
@@ -29,6 +31,9 @@ class BookControllerIntegrationTest {
 
   @MockBean
   private BookRepository bookRepository;
+
+  @MockBean
+  private CustomAuthenticationProvider customAuthenticationProvider;
 
   // write test cases here
 
@@ -55,6 +60,7 @@ class BookControllerIntegrationTest {
 
   // GetById
 
+  @WithMockUser(value = "test")
   @Test
   public void givenBook_whenGetBook_thenReturnJsonBookObject() throws Exception {
     given(bookRepository.findById(testBook.getId())).willReturn(java.util.Optional.of(testBook));
@@ -65,6 +71,7 @@ class BookControllerIntegrationTest {
         .andExpect(jsonPath("$.title").value(testBook.getTitle()));
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenNoBook_whenGetBook_thenReturnNotFoundError() throws Exception {
       mvc.perform(MockMvcRequestBuilders.get("/api/books/" + testBook.getId())
@@ -74,6 +81,7 @@ class BookControllerIntegrationTest {
 
   // GetAll
 
+  @WithMockUser(value = "test")
   @Test
   public void givenBookList_whenGetBooks_thenReturnJsonBooksArray() throws Exception {
     given(bookRepository.findAll()).willReturn(Arrays.asList(testBook, testBook2));
@@ -86,6 +94,7 @@ class BookControllerIntegrationTest {
         .andExpect(jsonPath("$[1].title").value(testBook2.getTitle()));
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenEmptyBookList_whenGetBooks_thenReturnJsonEmptyArray() throws Exception {
     given(bookRepository.findAll()).willReturn(new ArrayList<Book>());
@@ -98,6 +107,7 @@ class BookControllerIntegrationTest {
 
   // Create Book
 
+  @WithMockUser(value = "test")
   @Test
   public void givenBook_whenPostBooks_thenReturnJsonBookObject() throws Exception {
     given(bookRepository.save(any(Book.class))).willReturn(testBook);
@@ -111,6 +121,7 @@ class BookControllerIntegrationTest {
 
   // Edit Book
 
+  @WithMockUser(value = "test")
   @Test
   public void givenBook_whenPutBooks_thenReturnJsonBookObject() throws Exception {
     given(bookRepository.save(any(Book.class))).willReturn(testBook);
@@ -123,6 +134,7 @@ class BookControllerIntegrationTest {
         .andExpect(jsonPath("$.title").value(testBook.getTitle()));
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUnknownBook_whenPutBook_thenReturnNotFoundError() throws Exception {
     mvc.perform(MockMvcRequestBuilders.put("/api/books/"+testBook.getId())
@@ -131,6 +143,7 @@ class BookControllerIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenWrongBook_whenPutBooks_thenReturnForbiddenError() throws Exception {
     given(bookRepository.findById(testBook.getId())).willReturn(java.util.Optional.ofNullable(testBook));
@@ -154,6 +167,7 @@ class BookControllerIntegrationTest {
 
   // Delete Book
 
+  @WithMockUser(value = "test")
   @Test
   public void whenDeleteBooks_thenReturnOkNoContent() throws Exception {
     given(bookRepository.findById(testBook.getId())).willReturn(java.util.Optional.ofNullable(testBook));
@@ -164,6 +178,7 @@ class BookControllerIntegrationTest {
         .andExpect(status().isNoContent());
   }
 
+  @WithMockUser(value = "test")
   @Test
   public void givenUnknownBook_whenDeleteBooks_thenReturnNotFoundError() throws Exception {
     mvc.perform(MockMvcRequestBuilders.delete("/api/books/"+testBook.getId())
