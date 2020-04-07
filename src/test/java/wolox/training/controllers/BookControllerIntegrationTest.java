@@ -1,37 +1,41 @@
 package wolox.training.controllers;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import wolox.training.components.CustomAuthenticationProvider;
 import wolox.training.models.Book;
-import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.services.OpenLibraryService;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import static org.mockito.BDDMockito.given;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 @WebMvcTest(BookController.class)
+@Import(OpenLibraryService.class)
 class BookControllerIntegrationTest {
 
   @Autowired
@@ -43,18 +47,42 @@ class BookControllerIntegrationTest {
   @MockBean
   private CustomAuthenticationProvider customAuthenticationProvider;
 
-  @MockBean
-  private OpenLibraryService openLibraryService;
-
   // write test cases here
 
   private Book testBook, testBook2;
   private String jsonBook;
   private Pageable pageable;
+  private static final String externalIsbn = "12345678";
+  private static WireMockServer wireMockServer;
+
+  @BeforeAll
+  public static void beforeAll() {
+    wireMockServer = new WireMockServer(options().bindAddress("localhost").port(8888).usingFilesUnderDirectory("src/test/java/wolox/training/mocks"));
+    wireMockServer.stubFor(get(urlMatching("/api/books.*"))
+        .atPriority(5)
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBodyFile("response_empty_book")));
+    wireMockServer.stubFor(get(urlMatching("/api/books.*"))
+        .withQueryParam("bibkeys", equalTo("ISBN:" + externalIsbn))
+        .withQueryParam("format",equalTo("json"))
+        .withQueryParam("jscmd",equalTo("data"))
+        .atPriority(1)
+        .willReturn(aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBodyFile("response_ok_book")));
+
+    wireMockServer.start();
+  }
+
+  @AfterAll
+  public static void afterAll() {
+    wireMockServer.stop();
+  }
 
   @BeforeEach
-  public void createVariables() {
-    testBook = new Book("Doyle","image","title","subtitle","publisher","1999","500","isbn","terror");
+  public void beforeEach() {
+    testBook = new Book("Doyle","image","title","subtitle","publisher","1999","500", externalIsbn,"terror");
     testBook2 = new Book("Doyle2","image2","title2","subtitle2","publisher2","1998","800","isbn2","fiction");
     jsonBook = "{\"author\": \"" + testBook.getAuthor() + "\"," +
         "\"image\": \"" + testBook.getImage() + "\"," +
@@ -67,6 +95,41 @@ class BookControllerIntegrationTest {
         "\"genre\": \"" + testBook.getGenre() + "\"" +
         "}";
     pageable = PageRequest.of(0, 20);
+  }
+
+  // GetByIsbn
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenExternalBook_whenGetBookByIsbn_thenCreateBookAndReturnJsonBookObject() throws Exception {
+    given(bookRepository.findFirstByIsbn(testBook.getIsbn())).willReturn(java.util.Optional.empty());
+    given(bookRepository.save(any(Book.class))).willReturn(testBook);
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/isbn/" + testBook.getIsbn())
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.title").value(testBook.getTitle()));
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenNoExternalBook_whenGetBookByIsbn_thenCreateBookAndReturnJsonBookObject() throws Exception {
+    given(bookRepository.findFirstByIsbn(testBook.getIsbn())).willReturn(java.util.Optional.empty());
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/isbn/987654321")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNotFound());
+  }
+
+  @WithMockUser(value = "test")
+  @Test
+  public void givenExternalBook_whenGetBookByIsbn_thenReturnJsonBookObject() throws Exception {
+    given(bookRepository.findFirstByIsbn(testBook.getIsbn())).willReturn(java.util.Optional.of(testBook));
+
+    mvc.perform(MockMvcRequestBuilders.get("/api/books/isbn/" + testBook.getIsbn())
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.title").value(testBook.getTitle()));
   }
 
   // GetById

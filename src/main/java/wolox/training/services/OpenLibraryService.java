@@ -3,6 +3,7 @@ package wolox.training.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,16 +15,17 @@ import java.util.Optional;
 
 @Service
 public class OpenLibraryService {
-
-  private final String BASE_URL = "https://openlibrary.org/api/books";
+  @Value("${externalservice.url}")
+  private String BASE_URL;
 
   private RestTemplate restTemplate = new RestTemplate();
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
   public Optional<Book> bookInfo(String isbn) throws JsonProcessingException {
+    String pathUrl = "/api/books";
     String url = UriComponentsBuilder
-        .fromHttpUrl(BASE_URL)
+        .fromHttpUrl(BASE_URL+pathUrl)
         .queryParam("bibkeys", "ISBN:" + isbn)
         .queryParam("format","json")
         .queryParam("jscmd","data")

@@ -24,7 +24,6 @@ import wolox.training.repositories.BookRepository;
 import wolox.training.constants.StatusMessages;
 import wolox.training.services.OpenLibraryService;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
