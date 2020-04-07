@@ -6,10 +6,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit4.SpringRunner;
 import wolox.training.models.Book;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +26,7 @@ class BookRepositoryTest {
   private BookRepository bookRepository;
 
   Book testBook, testBook2;
+  Pageable pageable;
 
   @BeforeEach
   void setUp() {
@@ -101,59 +103,60 @@ class BookRepositoryTest {
 
   @Test
   public void whenFindAllByPublisherAndGenreAndYear_thenReturnBookObject() {
-    List<Book> foundList = bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear());
+    Page<Book> page = bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher(),testBook.getGenre(),testBook.getYear(),pageable);
 
-    assertThat(foundList.size()).isEqualTo(2);
+    assertThat(page.getTotalElements()).isEqualTo(1);
   }
 
   @Test
   public void whenFindAllByPublisherAndGenreAndYear_thenReturnNull() {
-    List<Book> foundList = bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher().concat("not match"),testBook.getGenre(),testBook.getYear());
+    Page<Book> page = bookRepository.findAllByPublisherAndGenreAndYear(testBook.getPublisher().concat("not match"),testBook.getGenre(),testBook.getYear(),pageable);
 
-    assertThat(foundList.size()).isEqualTo(0);
+    assertThat(page.getTotalElements()).isEqualTo(0);
   }
 
   @Test
   public void whenFindAllByPublisherAndGenreAndYearWithSomeNullParameters_thenReturnBookObject() {
-    List<Book> foundList = bookRepository.findAllByPublisherAndGenreAndYear(null,testBook.getGenre(),testBook.getYear());
+    Page<Book> page = bookRepository.findAllByPublisherAndGenreAndYear(null,testBook.getGenre(),testBook.getYear(),pageable);
 
-    assertThat(foundList.size()).isEqualTo(2);
-    assertThat(foundList.get(0).getTitle()).isEqualTo(testBook.getTitle());
-    assertThat(foundList.get(1).getTitle()).isEqualTo(testBook2.getTitle());
+    assertThat(page.getTotalElements()).isEqualTo(2);
+    assertThat(page.getContent().get(0).getTitle()).isEqualTo(testBook.getTitle());
+    assertThat(page.getContent().get(1).getTitle()).isEqualTo(testBook2.getTitle());
   }
 
   @Test
   public void whenFindAllByPublisherAndGenreAndYearWithAllNullParameters_thenReturnBookObject() {
-    List<Book> foundList = bookRepository.findAllByPublisherAndGenreAndYear(null,null,null);
+    Page<Book> page = bookRepository.findAllByPublisherAndGenreAndYear(null,null,null,pageable);
 
-    assertThat(foundList.size())
-        .isEqualTo(2);
-    assertThat(foundList.get(0).getTitle()).isEqualTo(testBook.getTitle());
-    assertThat(foundList.get(1).getTitle()).isEqualTo(testBook2.getTitle());
+    assertThat(page.getTotalElements()).isEqualTo(2);
+    assertThat(page.getContent().get(0).getTitle()).isEqualTo(testBook.getTitle());
+    assertThat(page.getContent().get(1).getTitle()).isEqualTo(testBook2.getTitle());
   }
 
   // findAllWithFilters
 
   @Test
   public void whenFindAllWithFilters_thenReturnBookObject() {
-    List<Book> foundList = bookRepository.findAllWithFilters(
-        testBook.getGenre(),
-        testBook.getAuthor(),
-        testBook.getImage(),
-        testBook.getTitle(),
-        testBook.getSubtitle(),
-        testBook.getPublisher(),
-        testBook.getYear(),
-        testBook.getPages(),
-        testBook.getIsbn()
+    Page<Book> page = bookRepository.findAllWithFilters(
+        testBook2.getGenre(),
+        testBook2.getAuthor(),
+        testBook2.getImage(),
+        testBook2.getTitle(),
+        testBook2.getSubtitle(),
+        testBook2.getPublisher(),
+        testBook2.getYear(),
+        testBook2.getPages(),
+        testBook2.getIsbn(),
+        pageable
     );
 
-    assertThat(foundList.size()).isEqualTo(1);
+    assertThat(page.getTotalElements()).isEqualTo(1);
+    assertThat(page.getContent().get(0).getTitle()).isEqualTo(testBook2.getTitle());
   }
 
   @Test
   public void whenFindAllWithFilters_thenReturnNull() {
-    List<Book> foundList = bookRepository.findAllWithFilters(
+    Page<Book> page = bookRepository.findAllWithFilters(
         testBook.getGenre().concat("not matching string"),
         testBook.getAuthor(),
         testBook.getImage(),
@@ -162,10 +165,11 @@ class BookRepositoryTest {
         testBook.getPublisher(),
         testBook.getYear(),
         testBook.getPages(),
-        testBook.getIsbn()
+        testBook.getIsbn(),
+        pageable
     );
 
-    assertThat(foundList.size()).isEqualTo(0);
+    assertThat(page.getTotalElements()).isEqualTo(0);
   }
 
   @Test
@@ -184,7 +188,7 @@ class BookRepositoryTest {
     entityManager.persist(testBook3);
     entityManager.flush();
 
-    List<Book> foundList = bookRepository.findAllWithFilters(
+    Page<Book> page = bookRepository.findAllWithFilters(
         testBook.getGenre(),
         testBook.getAuthor(),
         testBook.getImage(),
@@ -193,21 +197,22 @@ class BookRepositoryTest {
         "",
         "",
         "",
-        ""
+        "",
+        pageable
     );
 
-    assertThat(foundList.size()).isEqualTo(3);
-    assertThat(foundList.get(0).getTitle()).isEqualTo(testBook.getTitle());
-    assertThat(foundList.get(1).getTitle()).isEqualTo(testBook2.getTitle());
-    assertThat(foundList.get(2).getTitle()).isEqualTo(testBook3.getTitle());
+    assertThat(page.getTotalElements()).isEqualTo(3);
+    assertThat(page.getContent().get(0).getTitle()).isEqualTo(testBook.getTitle());
+    assertThat(page.getContent().get(1).getTitle()).isEqualTo(testBook2.getTitle());
+    assertThat(page.getContent().get(2).getTitle()).isEqualTo(testBook3.getTitle());
   }
 
   @Test
   public void whenFindAllWithFiltersWithAllNullParameters_thenReturnBookObject() {
-    List<Book> foundList = bookRepository.findAllWithFilters("","","","","","","","","");
+    Page<Book> page = bookRepository.findAllWithFilters("","","","","","","","","",pageable);
 
-    assertThat(foundList.size()).isEqualTo(2);
-    assertThat(foundList.get(0).getTitle()).isEqualTo(testBook.getTitle());
-    assertThat(foundList.get(1).getTitle()).isEqualTo(testBook2.getTitle());
+    assertThat(page.getTotalElements()).isEqualTo(2);
+    assertThat(page.getContent().get(0).getTitle()).isEqualTo(testBook.getTitle());
+    assertThat(page.getContent().get(1).getTitle()).isEqualTo(testBook2.getTitle());
   }
 }

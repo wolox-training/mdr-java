@@ -6,11 +6,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit4.SpringRunner;
 import wolox.training.models.User;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +27,7 @@ class UserRepositoryTest {
   private UserRepository userRepository;
 
   User testUser, testUser2, testUser3;
+  Pageable pageable;
 
   @BeforeEach
   void setUp() {
@@ -59,70 +61,72 @@ class UserRepositoryTest {
 
   @Test
   public void whenFindAllByBirthdateAndName_thenReturnUsers() {
-    ArrayList<User> users = (ArrayList<User>) userRepository.findAllByBirthdateAndName(
+    Page<User> page = userRepository.findAllByBirthdateAndName(
         LocalDate.of(1992, 02, 01),
         LocalDate.of(1992, 03, 01),
-        "GoOd");
+        "GoOd",
+        pageable
+    );
 
-    assertThat(users.size()).isEqualTo(1);
-    assertThat(users.get(0).getName()).isEqualTo(testUser.getName());
+    assertThat(page.getTotalElements()).isEqualTo(1);
+    assertThat(page.getContent().get(0).getName()).isEqualTo(testUser.getName());
   }
 
   @Test
   public void whenFindAllByBirthdateAndNameWithNullParameter_thenReturnUsers() {
-    ArrayList<User> users = (ArrayList<User>) userRepository.findAllByBirthdateAndName(
+    Page<User> page = userRepository.findAllByBirthdateAndName(
         null,
         null,
-        "GoOd");
+        "GoOd",
+        pageable
+    );
 
-    assertThat(users.size()).isEqualTo(2);
-    assertThat(users.get(0).getName()).isEqualTo(testUser.getName());
-    assertThat(users.get(1).getName()).isEqualTo(testUser2.getName());
+    assertThat(page.getTotalElements()).isEqualTo(2);
+    assertThat(page.getContent().get(0).getName()).isEqualTo(testUser.getName());
+    assertThat(page.getContent().get(1).getName()).isEqualTo(testUser2.getName());
   }
 
   @Test
   public void whenFindAllByBirthdateAndNameWithAllNullParameter_thenReturnUsers() {
-    ArrayList<User> users = (ArrayList<User>) userRepository.findAllByBirthdateAndName(null,null,null);
+    Page<User> page = userRepository.findAllByBirthdateAndName(null,null,null,pageable);
 
-    assertThat(users.size()).isEqualTo(3);
-    assertThat(users.get(0).getName()).isEqualTo(testUser.getName());
-    assertThat(users.get(1).getName()).isEqualTo(testUser2.getName());
-    assertThat(users.get(2).getName()).isEqualTo(testUser3.getName());
+    assertThat(page.getTotalElements()).isEqualTo(3);
+    assertThat(page.getContent().get(0).getName()).isEqualTo(testUser.getName());
+    assertThat(page.getContent().get(1).getName()).isEqualTo(testUser2.getName());
+    assertThat(page.getContent().get(2).getName()).isEqualTo(testUser3.getName());
   }
 
   // findAllWithFilters
 
   @Test
   public void whenFindAllWithFilters_thenReturnUsers() {
-    ArrayList<User> users = (ArrayList<User>) userRepository.findAllWithFilters(
+    Page<User> page = userRepository.findAllWithFilters(
         testUser.getBirthdate(),
         testUser.getName(),
-        testUser.getUsername()
+        testUser.getUsername(),
+        pageable
     );
 
-    assertThat(users.size()).isEqualTo(1);
-    assertThat(users.get(0).getName()).isEqualTo(testUser.getName());
+    assertThat(page.getTotalElements()).isEqualTo(1);
+    assertThat(page.getContent().get(0).getName()).isEqualTo(testUser.getName());
   }
 
   @Test
   public void whenFindAllWithFiltersWithNullParameter_thenReturnUsers() {
-    ArrayList<User> users = (ArrayList<User>) userRepository.findAllWithFilters(
-        null,
-        "gooD",
-        "");
+    Page<User> page = userRepository.findAllWithFilters(null,"gooD","",pageable);
 
-    assertThat(users.size()).isEqualTo(2);
-    assertThat(users.get(0).getName()).isEqualTo(testUser.getName());
-    assertThat(users.get(1).getName()).isEqualTo(testUser2.getName());
+    assertThat(page.getTotalElements()).isEqualTo(2);
+    assertThat(page.getContent().get(0).getName()).isEqualTo(testUser.getName());
+    assertThat(page.getContent().get(1).getName()).isEqualTo(testUser2.getName());
   }
 
   @Test
   public void whenFindAllWithFiltersWithAllNullParameter_thenReturnUsers() {
-    ArrayList<User> users = (ArrayList<User>) userRepository.findAllWithFilters(null,"","");
+    Page<User> page = userRepository.findAllWithFilters(null,"","",pageable);
 
-    assertThat(users.size()).isEqualTo(3);
-    assertThat(users.get(0).getName()).isEqualTo(testUser.getName());
-    assertThat(users.get(1).getName()).isEqualTo(testUser2.getName());
-    assertThat(users.get(2).getName()).isEqualTo(testUser3.getName());
+    assertThat(page.getTotalElements()).isEqualTo(3);
+    assertThat(page.getContent().get(0).getName()).isEqualTo(testUser.getName());
+    assertThat(page.getContent().get(1).getName()).isEqualTo(testUser2.getName());
+    assertThat(page.getContent().get(2).getName()).isEqualTo(testUser3.getName());
   }
 }

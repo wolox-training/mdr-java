@@ -5,6 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,6 +63,7 @@ class UserControllerIntegrationTest {
   private Book testBook;
   private String jsonUser, jsonBook;
   private String PASSWORD = "test";
+  private Pageable pageable;
 
   @BeforeEach
   public void createVariables() {
@@ -71,6 +77,7 @@ class UserControllerIntegrationTest {
         "\"password\": \"" + PASSWORD + "\"" +
         "}";
     jsonBook = "{\"id\": " + testBook.getId() + "}";
+    pageable = PageRequest.of(0, 20);
   }
 
   // GetLoggedUser
@@ -129,29 +136,31 @@ class UserControllerIntegrationTest {
   @WithMockUser(value = "test")
   @Test
   public void givenUserList_whenGetUsers_thenReturnJsonUserArray() throws Exception {
-    Iterable<User> userIterable = Arrays.asList(testUser, testUser2);
+    List<User> userList = Arrays.asList(testUser,testUser2);
+    Page<User> page = new PageImpl<>(userList);
 
-    given(userRepository.findAll()).willReturn(userIterable);
+    given(userRepository.findAll(pageable)).willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/users/")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(2)))
-        .andExpect(jsonPath("$[0].name").value(testUser.getName()))
-        .andExpect(jsonPath("$[1].name").value(testUser2.getName()));
+        .andExpect(jsonPath("$.totalElements").value(2))
+        .andExpect(jsonPath("$.content[0].name").value(testUser.getName()))
+        .andExpect(jsonPath("$.content[1].name").value(testUser2.getName()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenEmptyUserList_whenGetUsers_thenReturnJsonEmptyArray() throws Exception {
-    Iterable<User> userIterable = new ArrayList<>();
+    List<User> userList = Collections.emptyList();
+    Page<User> page = new PageImpl<>(userList);
 
-    given(userRepository.findAll()).willReturn(userIterable);
+    given(userRepository.findAll(pageable)).willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/users/")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(0)));
+        .andExpect(jsonPath("$.totalElements").value(0));
   }
 
   // Search
@@ -159,10 +168,11 @@ class UserControllerIntegrationTest {
   @WithMockUser(value = "test")
   @Test
   public void givenUserList_whenSearchUsersWithAllParams_thenReturnJsonUserArray() throws Exception {
-    Iterable<User> userIterable = Collections.singletonList(testUser);
+    List<User> userList = Collections.singletonList(testUser);
+    Page<User> page = new PageImpl<>(userList);
 
-    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName()))
-        .willReturn(userIterable);
+    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName(),pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
         .contentType(MediaType.APPLICATION_JSON)
@@ -170,34 +180,36 @@ class UserControllerIntegrationTest {
         .queryParam("endDate", testUser.getBirthdate().toString())
         .queryParam("name", testUser.getName()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name").value(testUser.getName()));
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.content[0].name").value(testUser.getName()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenUserList_whenSearchUsersWithNullParams_thenReturnJsonUserArray() throws Exception {
-    Iterable<User> userIterable = Collections.singletonList(testUser);
+    List<User> userList = Collections.singletonList(testUser);
+    Page<User> page = new PageImpl<>(userList);
 
-    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),null,testUser.getName()))
-        .willReturn(userIterable);
+    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),null,testUser.getName(),pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
         .contentType(MediaType.APPLICATION_JSON)
         .queryParam("startDate", testUser.getBirthdate().toString())
         .queryParam("name", testUser.getName()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name").value(testUser.getName()));
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.content[0].name").value(testUser.getName()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenEmptyUserList_whenSearchUsers_thenReturnJsonEmptyArray() throws Exception {
-    Iterable<User> userIterable = new ArrayList<>();
+    List<User> userList = Collections.emptyList();
+    Page<User> page = new PageImpl<>(userList);
 
-    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName()))
-        .willReturn(userIterable);
+    given(userRepository.findAllByBirthdateAndName(testUser.getBirthdate(),testUser.getBirthdate(),testUser.getName(),pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/users/search")
         .contentType(MediaType.APPLICATION_JSON)
@@ -205,7 +217,7 @@ class UserControllerIntegrationTest {
         .queryParam("endDate", testUser.getBirthdate().toString())
         .queryParam("name", testUser.getName()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(0)));
+        .andExpect(jsonPath("$.totalElements").value(0));
   }
 
   // Search By
@@ -213,13 +225,15 @@ class UserControllerIntegrationTest {
   @WithMockUser(value = "test")
   @Test
   public void givenUserList_whenSearchUsersBy_thenReturnJsonUserArray() throws Exception {
-    Iterable<User> userIterable = Collections.singletonList(testUser);
+    List<User> userList = Collections.singletonList(testUser);
+    Page<User> page = new PageImpl<>(userList);
 
     given(userRepository.findAllWithFilters(
         testUser.getBirthdate(),
         testUser.getName(),
-        testUser.getUsername()))
-        .willReturn(userIterable);
+        testUser.getUsername(),
+        pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/users/search-by")
         .contentType(MediaType.APPLICATION_JSON)
@@ -227,44 +241,48 @@ class UserControllerIntegrationTest {
         .queryParam("name", testUser.getName())
         .queryParam("username", testUser.getUsername()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name").value(testUser.getName()));
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.content[0].name").value(testUser.getName()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenUserList_whenSearchUsersByWithNullParams_thenReturnJsonUserArray() throws Exception {
-    Iterable<User> userIterable = Collections.singletonList(testUser);
+    List<User> userList = Collections.singletonList(testUser);
+    Page<User> page = new PageImpl<>(userList);
 
     given(userRepository.findAllWithFilters(
         null,
         testUser.getName(),
-        ""))
-        .willReturn(userIterable);
+        "",
+        pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/users/search-by")
         .contentType(MediaType.APPLICATION_JSON)
         .queryParam("name", testUser.getName()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].name").value(testUser.getName()));
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.content[0].name").value(testUser.getName()));
   }
 
   @WithMockUser(value = "test")
   @Test
   public void givenEmptyUserList_whenSearchByUsers_thenReturnJsonEmptyArray() throws Exception {
-    Iterable<User> userIterable = new ArrayList<>();
+    List<User> userList = Collections.emptyList();
+    Page<User> page = new PageImpl<>(userList);
 
     given(userRepository.findAllWithFilters(
         null,
         "",
-        ""))
-        .willReturn(userIterable);
+        "",
+        pageable))
+        .willReturn(page);
 
     mvc.perform(MockMvcRequestBuilders.get("/api/users/search-by")
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(0)));
+        .andExpect(jsonPath("$.totalElements").value(0));
   }
 
   // Create User

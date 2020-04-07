@@ -3,6 +3,8 @@ package wolox.training.repositories;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -15,17 +17,21 @@ public interface UserRepository extends CrudRepository<User, Long> {
       " WHERE (cast(:birthdate as date) is null OR u.birthdate = :birthdate)" +
       " AND (:name is null OR LOWER(u.name) LIKE LOWER(CONCAT('%',:name,'%')))" +
       " AND (:username is null OR LOWER(u.username) LIKE LOWER(CONCAT('%',:username,'%')))")
-  Iterable<User> findAllWithFilters(
+  Page<User> findAllWithFilters(
       @Param("birthdate") LocalDate birthdate,
       @Param("name")  String name,
-      @Param("username")  String username);
+      @Param("username")  String username,
+      Pageable pageable);
 
   @Query("SELECT u FROM User u" +
       " WHERE (cast(:birthdate_start as date) is null OR u.birthdate >= :birthdate_start)" +
       " AND (cast(:birthdate_end as date) is null OR u.birthdate <= :birthdate_end)" +
       " AND (:name is null OR LOWER(u.name) LIKE LOWER(CONCAT('%',:name,'%')))")
-  Iterable<User> findAllByBirthdateAndName(
-  @Param("birthdate_start") LocalDate birthdateStart,
-  @Param("birthdate_end")  LocalDate birthdateEnd,
-  @Param("name")  String name);
+  Page<User> findAllByBirthdateAndName(
+      @Param("birthdate_start") LocalDate birthdateStart,
+      @Param("birthdate_end")  LocalDate birthdateEnd,
+      @Param("name")  String name,
+      Pageable pageable);
+
+  Page<User> findAll(Pageable pageable);
 }
